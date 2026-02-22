@@ -3,4 +3,4 @@ Trabajo para la asignatura de Computación Móvil
 
 Requisitos:
 
-API MÍNIMA: Android 5.0
+API MÍNIMA: Android 6.0
