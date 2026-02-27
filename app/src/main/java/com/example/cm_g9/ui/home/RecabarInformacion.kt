@@ -11,6 +11,9 @@ import com.example.cm_g9.data.HomeItem
 class RecabarInformacion(){
     val listaHome: MutableList<HomeItem> = mutableListOf()
     fun pedirPermisos(context: Context) {
+        //Montar un bucle while hasta obtener el permiso
+        //Si no salir de la aplicacion
+        //Ahora no tiene el bucle while solo lo muestra una vez Hay que cambiarlo
         val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
         context.startActivity(intent)
     }

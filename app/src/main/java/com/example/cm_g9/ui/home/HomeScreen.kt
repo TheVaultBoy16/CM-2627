@@ -31,11 +31,11 @@ import com.example.cm_g9.data.HomeItem
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
     val iconRes: Int = R.drawable.ic_launcher_foreground
-    //var recabarInformacion = RecabarInformacion()
-    //recabarInformacion.optenerInfoApp(LocalContext.current);
-    val items = //recabarInformacion.listaHome;
-
-        listOf(
+    var recabarInformacion = RecabarInformacion()//Comentar esto para ver el preload
+    recabarInformacion.optenerInfoApp(LocalContext.current);//Comentar esto para ver el preload
+    val items = recabarInformacion.listaHome; //Comentar esto para ver el preload
+    //Descomentar lo de abajo para ver el preload
+/*        listOf(
         HomeItem(1, "App 1", iconRes),
         HomeItem(2, "App 2", iconRes),
         HomeItem(3, "App 3", iconRes),
@@ -44,7 +44,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         HomeItem(6, "App 6", iconRes),
         HomeItem(7, "App 7", iconRes),
         HomeItem(8, "App 8", iconRes),
-    )
+    )*/
     //recabarInformacion.listaHome;
     LazyColumn(
         modifier = modifier,

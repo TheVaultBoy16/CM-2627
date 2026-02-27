@@ -29,7 +29,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+
+        //esto inicia el recabar informacion
         val info = RecabarInformacion()
+        //Pide los permisos necesarios
         info.pedirPermisos(this)
 
 
