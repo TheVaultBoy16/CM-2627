@@ -33,7 +33,8 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     val iconRes: Int = R.drawable.ic_launcher_foreground
     var recabarInformacion = RecabarInformacion()
     recabarInformacion.optenerInfoApp(LocalContext.current);
-    val items =recabarInformacion.listaHome;
+    val items = recabarInformacion.listaHome;
+
         /*listOf(
         HomeItem(1, "App 1", iconRes),
         HomeItem(2, "App 2", iconRes),
@@ -44,7 +45,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         HomeItem(7, "App 7", iconRes),
         HomeItem(8, "App 8", iconRes),
     )*/
-
+    //recabarInformacion.listaHome;
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(16.dp),
@@ -96,6 +97,12 @@ fun HomeItemCard(item: HomeItem, modifier: Modifier = Modifier) {
                     text = "Last time used: "+item.date,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Tiempo de uso: "+item.horaUsadas+":"+item.minUsadas+":"+item.segUsadas,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+
                 )
             }
         }

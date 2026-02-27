@@ -28,9 +28,17 @@ class RecabarInformacion(){
             for(usp in stats.values){
                 dire = usp.packageName;
                 if(dire.length > 4){
+                    val tiempoMs = usp.totalTimeInForeground; // milisegundos
+                    var segundos = tiempoMs / 1000
+                    var minutos = segundos / 60
+                    var horas = minutos / 60
+                    segundos %= 60
+                    minutos %= 60
+
+
                     nombre = dire.split(".").last()
                     listaHome.add(
-                        HomeItem(id , nombre , iconRes)
+                        HomeItem(id, nombre, iconRes, "Me la suda" , horas , minutos,segundos)
                     )
 
                 }
