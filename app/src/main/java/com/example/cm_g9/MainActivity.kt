@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.cm_g9.ui.home.HomeScreen
+import com.example.cm_g9.ui.home.RecabarInformacion
 import com.example.cm_g9.ui.theme.CMG9Theme
 
 class MainActivity : ComponentActivity() {
@@ -27,6 +28,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val info = RecabarInformacion()
+        info.pedirPermisos(this)
+
+
         setContent {
             CMG9Theme() {
                 Scaffold(
@@ -80,3 +86,4 @@ fun GreetingPreview() {
         HomeScreen()
     }
 }
+
