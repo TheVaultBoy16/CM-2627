@@ -41,7 +41,7 @@ class RecabarInformacion(){
 
                     nombre = dire.split(".").last()
                     listaHome.add(
-                        HomeItem(id, nombre, iconRes, "Me la suda" , horas , minutos,segundos)
+                        HomeItem(id, nombre, iconRes, "TDB" , horas , minutos,segundos)
                     )
 
                 }
