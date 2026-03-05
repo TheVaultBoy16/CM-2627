@@ -25,33 +25,32 @@ import com.example.cm_g9.R
 @Composable
 fun InitialScreen(modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        contentAlignment = Alignment.Center
+        modifier = modifier.fillMaxSize().padding(24.dp),
+        contentAlignment = Alignment.TopCenter
     ) {
-        Text(
-            text = "Aplicación CM-G9",
-            fontSize = 30.sp,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 100.dp).align(Alignment.TopCenter)
-        )
+
 
         Column(
-            modifier = modifier.padding(),
+            modifier = Modifier.padding(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.Top
         ) {
-
+            Text(
+                text = "Aplicación CM-G9",
+                fontSize = 30.sp,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                //modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.padding(bottom = 100.dp)
+            )
             Image(
                 painter = painterResource(R.drawable.monster_baptism),
-                contentDescription = "",
+                contentDescription = ""
             )
             Text(
-                text = "Una app para visualizar el tiempo de uso de nuestras aplicaciones, " +
-                        "junto con estadísticas para comprender mejor nuestra actividad durante" +
-                        " el día",
+                text = "Una app para visualizar el tiempo de uso de nuestras aplicaciones",
                 textAlign = TextAlign.Justify,
-                modifier = Modifier.padding(24.dp)
+                modifier = Modifier.padding(top = 20.dp, bottom = 100.dp)
             )
             Text(
                 text = "Haz clic para empezar",
