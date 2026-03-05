@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.cm_g9.ui.home.HomeScreen
+import com.example.cm_g9.ui.home.InitialScreen
 import com.example.cm_g9.ui.home.RecabarInformacion
 import com.example.cm_g9.ui.theme.CMG9Theme
 
@@ -48,6 +49,7 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
                     HomeScreen(modifier = Modifier.padding(innerPadding))
+                    //InitialScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
