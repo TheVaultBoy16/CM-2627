@@ -1,5 +1,9 @@
 package com.example.cm_g9.ui.home
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,6 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -27,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cm_g9.R
 import com.example.cm_g9.data.HomeItem
+import androidx.core.graphics.createBitmap
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
@@ -66,6 +74,8 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 @Composable
 fun HomeItemCard(item: HomeItem, modifier: Modifier = Modifier) {
 
+
+
     Card(
         modifier = modifier.fillMaxWidth()
     ) {
@@ -76,7 +86,7 @@ fun HomeItemCard(item: HomeItem, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = item.imageRes),
+                painter = drawableToPainter(item.icono) ,//painterResource(id = item.imageRes),
                 contentDescription = null,
                 modifier = Modifier
                     .size(64.dp)
@@ -113,4 +123,22 @@ fun HomeItemCard(item: HomeItem, modifier: Modifier = Modifier) {
 @Composable
 fun HomeScreenPreview() {
     HomeScreen()
+}
+
+
+fun drawableToPainter(drawable: Drawable): Painter {
+    val bitmap: Bitmap = if (drawable is BitmapDrawable) {
+        drawable.bitmap
+    } else {
+        val b = createBitmap(
+            drawable.intrinsicWidth.coerceAtLeast(1),
+            drawable.intrinsicHeight.coerceAtLeast(1)
+        )
+        val canvas = Canvas(b)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        b
+    }
+
+    return BitmapPainter(bitmap.asImageBitmap())
 }

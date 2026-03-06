@@ -5,6 +5,8 @@ import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.os.Process
 import android.provider.Settings
 import com.example.cm_g9.R
@@ -41,7 +43,9 @@ class RecabarInformacion() {
         
         var id = 1
         val iconRes: Int = R.drawable.ic_launcher_foreground
-        
+        val pm = context.packageManager;
+
+
         if (stats.isNotEmpty()) {
             for (usp in stats.values) {
                 val dire = usp.packageName
@@ -54,8 +58,13 @@ class RecabarInformacion() {
                     minutos %= 60
 
                     val nombre = dire.split(".").last()
+                    val icon = pm.getApplicationIcon(dire)
+                    val nombreReal = pm.getApplicationLabel(
+                        pm.getApplicationInfo(dire,0)
+                    ).toString()
+
                     listaHome.add(
-                        HomeItem(id, nombre, iconRes, "TDB", horas, minutos, segundos)
+                        HomeItem(id, nombreReal, iconRes, "TDB", horas, minutos, segundos,icon)
                     )
                     id++
                 }
