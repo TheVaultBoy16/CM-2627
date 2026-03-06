@@ -16,12 +16,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.cm_g9.ui.home.HomeScreen
-import com.example.cm_g9.ui.home.InitialScreen
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.cm_g9.ui.home.RecabarInformacion
+import com.example.cm_g9.ui.navigation.ApplicationNavGraph
+import com.example.cm_g9.ui.navigation.HomeDestination
+import com.example.cm_g9.ui.navigation.InitialDestination
+import com.example.cm_g9.ui.navigation.ItemDestination
 import com.example.cm_g9.ui.theme.CMG9Theme
 
 class MainActivity : ComponentActivity() {
@@ -30,32 +35,40 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-
-        //esto inicia el recabar informacion
         val info = RecabarInformacion()
-        //Pide los permisos necesarios
         info.pedirPermisos(this)
 
-
         setContent {
-            CMG9Theme() {
+            CMG9Theme {
+                val navController = rememberNavController()
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-                        com.example.cm_g9.MyTopAppBar(
-                            title = stringResource(id = R.string.app_name),
-                            canNavigateBack = false
+                        val canNavigateBack = navController.previousBackStackEntry != null
+                        MyTopAppBar(
+                            title = when {
+                                currentRoute == InitialDestination.route -> "Inicio"
+                                currentRoute == HomeDestination.route -> "Mis Aplicaciones"
+                                currentRoute?.startsWith(ItemDestination.route) == true -> "Detalle de App"
+                                else -> stringResource(id = R.string.app_name)
+                            },
+                            canNavigateBack = canNavigateBack,
+                            navigateUp = { navController.navigateUp() }
                         )
                     }
                 ) { innerPadding ->
-                    HomeScreen(modifier = Modifier.padding(innerPadding))
-                    //InitialScreen(modifier = Modifier.padding(innerPadding))
+                    ApplicationNavGraph(
+                        navController = navController,
+                        modifier = Modifier.padding(innerPadding)
+                    )
                 }
             }
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,7 +78,7 @@ fun MyTopAppBar(
     navigateUp: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null,
     modifier: Modifier = Modifier
-){
+) {
     CenterAlignedTopAppBar(
         title = { Text(title) },
         modifier = modifier,
@@ -82,13 +95,3 @@ fun MyTopAppBar(
         }
     )
 }
-
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CMG9Theme() {
-        HomeScreen()
-    }
-}
-

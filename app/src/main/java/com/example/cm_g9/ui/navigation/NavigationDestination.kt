@@ -1,15 +1,25 @@
-package com.example.myapplication.ui.navigation
+package com.example.cm_g9.ui.navigation
+
+import com.example.cm_g9.R
 
 interface NavigationDestination {
-
-    /**
-     * Nombre único para identificar esta pantalla en la pantalla de navegación.
-     */
     val route: String
-
-    /**
-     * Recurso de cadena para el título de la pantalla en la barra de acción
-     */
-
     val titleRes: Int
+}
+
+object InitialDestination : NavigationDestination {
+    override val route = "initial"
+    override val titleRes = R.string.app_name
+}
+
+object HomeDestination : NavigationDestination {
+    override val route = "home"
+    override val titleRes = R.string.app_name
+}
+
+object ItemDestination : NavigationDestination {
+    override val route = "item"
+    override val titleRes = R.string.app_name
+    const val itemIdArg = "itemId"
+    val routeWithArgs = "$route/{$itemIdArg}"
 }

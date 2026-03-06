@@ -1,7 +1,5 @@
 package com.example.cm_g9.ui.item
 
-import android.graphics.drawable.Drawable
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -30,10 +28,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cm_g9.R
-import com.example.cm_g9.data.HomeItem
 
-
-data class HomeItemDummy( // De prueba, sin iconos, para probar la interfaz
+data class HomeItemDummy( // Clase para probar la interfaz, quitar para meter los datos reales
     val id: Int,
     val name: String,
     val imageRes: Int,
@@ -42,15 +38,15 @@ data class HomeItemDummy( // De prueba, sin iconos, para probar la interfaz
     val minUsadas: Long = 3,
     val segUsadas: Long = 45,
 )
+
 @Composable
 fun ItemScreen(
+    itemId: Int,
     modifier: Modifier = Modifier
-){
+) {
+    val iconRes: Int = R.drawable.ic_launcher_foreground
+    val item = HomeItemDummy(itemId, "App $itemId", iconRes)
 
-    val iconRes: Int = com.example.cm_g9.R.drawable.ic_launcher_foreground
-    val item = HomeItemDummy(1,"WhatsApp",iconRes)
-
-    // Datos inventados: (Día del mes, Minutos de uso)
     val dummyData = listOf(
         Pair(1, 45), Pair(3, 120), Pair(5, 30), Pair(7, 200),
         Pair(10, 80), Pair(15, 150), Pair(20, 10), Pair(25, 300),
@@ -70,8 +66,7 @@ fun ItemScreen(
             Image(
                 painter = painterResource(id = item.imageRes),
                 contentDescription = "App Image",
-                modifier = Modifier
-                    .size(100.dp)
+                modifier = Modifier.size(100.dp)
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -86,7 +81,7 @@ fun ItemScreen(
                 )
 
                 Text(
-                    text = "Tiempo de uso: "+item.horaUsadas+":"+item.minUsadas+":"+item.segUsadas,
+                    text = "Tiempo de uso: ${item.horaUsadas}:${item.minUsadas}:${item.segUsadas}",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -102,7 +97,6 @@ fun ItemScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Gráfica de puntos con unidades
         UsageGraph(
             data = dummyData,
             modifier = Modifier
@@ -144,17 +138,15 @@ fun UsageGraph(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
     Canvas(modifier = modifier) {
         val width = size.width
         val height = size.height
-        val marginLeft = 100f // Espacio para los números del eje Y
-        val marginBottom = 80f // Espacio para los números del eje X
+        val marginLeft = 100f
+        val marginBottom = 80f
 
-        // Eje Y
         drawLine(
             color = Color.Black,
             start = Offset(marginLeft, 20f),
             end = Offset(marginLeft, height - marginBottom),
             strokeWidth = 2f
         )
-        // Eje X
         drawLine(
             color = Color.Black,
             start = Offset(marginLeft, height - marginBottom),
@@ -162,7 +154,6 @@ fun UsageGraph(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
             strokeWidth = 2f
         )
 
-        // Marcas y etiquetas del Eje Y (Minutos)
         val ySteps = listOf(0, 100, 200, 300)
         ySteps.forEach { min ->
             val y = (height - marginBottom) - (min.toFloat() / maxMinutes) * (height - marginBottom - 20f)
@@ -187,7 +178,6 @@ fun UsageGraph(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
             topLeft = Offset(marginLeft - 80f, 0f)
         )
 
-        // Marcas y etiquetas del Eje X (Días)
         val xSteps = listOf(1, 10, 20, 30)
         xSteps.forEach { day ->
             val x = marginLeft + (day.toFloat() / maxDays) * (width - marginLeft - 20f)
@@ -212,7 +202,6 @@ fun UsageGraph(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
             topLeft = Offset(width - 50f, height - marginBottom + 40f)
         )
 
-        // Puntos
         data.forEach { (day, minutes) ->
             val x = marginLeft + (day.toFloat() / maxDays) * (width - marginLeft - 20f)
             val y = (height - marginBottom) - (minutes.toFloat() / maxMinutes) * (height - marginBottom - 20f)
@@ -229,5 +218,5 @@ fun UsageGraph(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun ItemScreenPreview() {
-    ItemScreen()
+    ItemScreen(itemId = 1)
 }

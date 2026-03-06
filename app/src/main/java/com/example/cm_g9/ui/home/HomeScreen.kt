@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,7 +30,6 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cm_g9.R
@@ -37,7 +37,9 @@ import com.example.cm_g9.data.HomeItem
 import androidx.core.graphics.createBitmap
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(
+    onItemClick: (Int) -> Unit,
+    modifier: Modifier = Modifier) {
     val iconRes: Int = R.drawable.ic_launcher_foreground
     var recabarInformacion = RecabarInformacion()//Comentar esto para ver el preload
     recabarInformacion.optenerInfoApp(LocalContext.current);//Comentar esto para ver el preload
@@ -64,7 +66,10 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         }
         items(items) { item ->
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                HomeItemCard(item = item)
+                HomeItemCard(
+                    item = item,
+                    modifier = Modifier.clickable { onItemClick(item.id) }
+                )
                 HorizontalDivider(color = Color.Black)
             }
         }
@@ -73,9 +78,6 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 
 @Composable
 fun HomeItemCard(item: HomeItem, modifier: Modifier = Modifier) {
-
-
-
     Card(
         modifier = modifier.fillMaxWidth()
     ) {
@@ -86,7 +88,7 @@ fun HomeItemCard(item: HomeItem, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = drawableToPainter(item.icono) ,//painterResource(id = item.imageRes),
+                painter = drawableToPainter(item.icono ?: LocalContext.current.getDrawable(R.drawable.ic_launcher_foreground)!!),
                 contentDescription = null,
                 modifier = Modifier
                     .size(64.dp)
@@ -104,15 +106,14 @@ fun HomeItemCard(item: HomeItem, modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = "Last time used: "+item.date,
+                    text = "Last time used: " + item.date,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Tiempo de uso: "+item.horaUsadas+":"+item.minUsadas+":"+item.segUsadas,
+                    text = "Tiempo de uso: " + item.horaUsadas + ":" + item.minUsadas + ":" + item.segUsadas,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
-
                 )
             }
         }
@@ -122,9 +123,8 @@ fun HomeItemCard(item: HomeItem, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen()
+    HomeScreen(onItemClick = {})
 }
-
 
 fun drawableToPainter(drawable: Drawable): Painter {
     val bitmap: Bitmap = if (drawable is BitmapDrawable) {
@@ -139,6 +139,5 @@ fun drawableToPainter(drawable: Drawable): Painter {
         drawable.draw(canvas)
         b
     }
-
     return BitmapPainter(bitmap.asImageBitmap())
 }
