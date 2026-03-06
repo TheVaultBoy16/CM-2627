@@ -1,5 +1,7 @@
 package com.example.cm_g9.ui.item
 
+import android.graphics.drawable.Drawable
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -27,14 +29,26 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.cm_g9.R
 import com.example.cm_g9.data.HomeItem
 
+
+data class HomeItemDummy( // De prueba, sin iconos, para probar la interfaz
+    val id: Int,
+    val name: String,
+    val imageRes: Int,
+    val date: String = "22/02/2026",
+    val horaUsadas: Long = 2,
+    val minUsadas: Long = 3,
+    val segUsadas: Long = 45,
+)
 @Composable
 fun ItemScreen(
     modifier: Modifier = Modifier
 ){
+
     val iconRes: Int = com.example.cm_g9.R.drawable.ic_launcher_foreground
-    val item = HomeItem(1,"WhatsApp",iconRes)
+    val item = HomeItemDummy(1,"WhatsApp",iconRes)
 
     // Datos inventados: (Día del mes, Minutos de uso)
     val dummyData = listOf(
