@@ -24,7 +24,9 @@ fun ApplicationNavGraph(
         composable(route = InitialDestination.route) {
             InitialScreen(
                 onStartClick = {
-                    navController.navigate(HomeDestination.route)
+                    navController.navigate(HomeDestination.route){
+                        popUpTo(InitialDestination.route){inclusive = true}
+                    }
                 }
             )
         }

@@ -23,12 +23,16 @@ import com.example.cm_g9.R
 fun InitialScreen(
     onStartClick: () -> Unit,
     modifier: Modifier = Modifier
+
+
 ) {
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.TopCenter
+            .padding(24.dp)
+            .clickable { onStartClick() },
+        contentAlignment = Alignment.TopCenter,
+        //modifier = Modifier.clickable { onStartClick() }
     ) {
         Column(
             modifier = Modifier.padding(),
@@ -54,8 +58,8 @@ fun InitialScreen(
             Text(
                 text = "Haz clic para empezar",
                 fontSize = 25.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { onStartClick() }
+                fontWeight = FontWeight.Bold
+                //modifier = Modifier.clickable { onStartClick() }
             )
         }
 
