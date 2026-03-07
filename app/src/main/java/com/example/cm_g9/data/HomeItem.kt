@@ -1,6 +1,7 @@
 package com.example.cm_g9.data
 
 import android.graphics.drawable.Drawable
+import androidx.core.graphics.drawable.toDrawable
 
 data class HomeItem(
     val id: Int,
@@ -10,5 +11,6 @@ data class HomeItem(
     val horaUsadas: Long = 2,
     val minUsadas: Long = 3,
     val segUsadas: Long = 45,
-    val icono: Drawable
+    val icono: Drawable = 0xFF0000FF.toInt().toDrawable(),
+    val habilitado: Boolean = true
 )
