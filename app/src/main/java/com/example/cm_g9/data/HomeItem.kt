@@ -10,6 +10,5 @@ data class HomeItem(
     val horaUsadas: Long = 2,
     val minUsadas: Long = 3,
     val segUsadas: Long = 45,
-    val icono : Drawable
-
-    )
+    val icono: Drawable
+)
