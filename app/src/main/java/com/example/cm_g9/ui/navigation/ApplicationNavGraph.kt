@@ -30,13 +30,18 @@ fun ApplicationNavGraph(
                 }
             )
         }
+        //Aqui hay que arreglan esto
         composable(route = HomeDestination.route) {
             HomeScreen(
                 onItemClick = { itemId ->
                     navController.navigate("${ItemDestination.route}/$itemId")
+                },
+                onAjustes = {
+                    navController.navigate(AjusteDestination.route)
                 }
             )
         }
+
         composable(
             route = ItemDestination.routeWithArgs,
             arguments = listOf(navArgument(ItemDestination.itemIdArg) {

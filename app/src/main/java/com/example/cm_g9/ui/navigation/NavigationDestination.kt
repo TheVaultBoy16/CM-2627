@@ -23,3 +23,8 @@ object ItemDestination : NavigationDestination {
     const val itemIdArg = "itemId"
     val routeWithArgs = "$route/{$itemIdArg}"
 }
+object AjusteDestination : NavigationDestination{
+    override val route = "ajustes"
+    override val titleRes = R.string.app_name
+
+}

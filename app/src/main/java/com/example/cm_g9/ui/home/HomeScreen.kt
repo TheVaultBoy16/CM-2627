@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -39,7 +40,9 @@ import androidx.core.graphics.createBitmap
 @Composable
 fun HomeScreen(
     onItemClick: (Int) -> Unit,
-    modifier: Modifier = Modifier) {
+    modifier: Modifier = Modifier,
+    onAjustes : () -> Unit
+) {
     val iconRes: Int = R.drawable.ic_launcher_foreground
     var recabarInformacion = RecabarInformacion()//Comentar esto para ver el preload
     recabarInformacion.optenerInfoApp(LocalContext.current);//Comentar esto para ver el preload
@@ -56,24 +59,32 @@ fun HomeScreen(
         HomeItem(8, "App 8", iconRes),
     )*/
     //recabarInformacion.listaHome;
-    LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
-            HorizontalDivider(color = Color.Black)
+    Column() {
+        Button(
+            onClick = { onAjustes() }
+        ) {
+            Text("Enviar")
         }
-        items(items) { item ->
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                HomeItemCard(
-                    item = item,
-                    modifier = Modifier.clickable { onItemClick(item.id) }
-                )
+        LazyColumn(
+            modifier = modifier,
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            item {
                 HorizontalDivider(color = Color.Black)
+            }
+            items(items) { item ->
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HomeItemCard(
+                        item = item,
+                        modifier = Modifier.clickable { onItemClick(item.id) }
+                    )
+                    HorizontalDivider(color = Color.Black)
+                }
             }
         }
     }
+
 }
 
 @Composable
@@ -123,7 +134,10 @@ fun HomeItemCard(item: HomeItem, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(onItemClick = {})
+    HomeScreen(
+        onItemClick = {},
+        onAjustes = {}
+    )
 }
 
 fun drawableToPainter(drawable: Drawable): Painter {
