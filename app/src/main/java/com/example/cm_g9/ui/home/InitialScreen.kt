@@ -46,10 +46,10 @@ fun InitialScreen(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 100.dp)
             )
-            Image(
-                painter = painterResource(R.drawable.monster_baptism),
-                contentDescription = ""
-            )
+//            Image(
+//                painter = painterResource(R.drawable.monster_baptism),
+//                contentDescription = ""
+//            )
             Text(
                 text = "Una app para visualizar el tiempo de uso de nuestras aplicaciones",
                 textAlign = TextAlign.Justify,
