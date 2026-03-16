@@ -64,7 +64,7 @@ fun ItemScreen(
     // Estado para controlar qué gráfica mostrar
     var selectedChart by remember { mutableStateOf(ChartType.POINTS) }
 
-    // Datos de prueba para las gráficas (EJE X -> Días, EJE Y -> Minutos)
+    // Datos de prueba para las gráficas (EJE X -> Días del mes, EJE Y -> Minutos por ese día)
     val dummyData = listOf(
         Pair(1, 45), Pair(3, 120), Pair(5, 30), Pair(7, 200),
         Pair(10, 80), Pair(15, 150), Pair(20, 10), Pair(25, 300),
