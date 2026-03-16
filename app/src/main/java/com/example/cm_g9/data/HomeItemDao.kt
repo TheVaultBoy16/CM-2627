@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface HomeItemDao {
     @Query("SELECT * FROM home_items ORDER BY name ASC")
-    fun getAllItems(): Flow<List<HomeItem>>
+    fun getAllItems(): Flow<List<HomeItemDB>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(items: List<HomeItem>)
+    suspend fun insertAll(items: List<HomeItemDB>)
 
     @Query("DELETE FROM home_items")
     suspend fun deleteAll()

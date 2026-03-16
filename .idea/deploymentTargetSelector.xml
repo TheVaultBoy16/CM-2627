@@ -8,6 +8,9 @@
       <SelectionState runConfigName="HomeItemDaoTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="daoInsertAndGetItems_test()">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>
