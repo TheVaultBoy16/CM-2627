@@ -3,6 +3,7 @@ package com.example.cm_g9.ui.item
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,7 +25,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -44,6 +49,10 @@ data class HomeItemDummy( // Clase para probar la interfaz, quitar para meter lo
     val segUsadas: Long = 45,
 )
 
+enum class ChartType {
+    POINTS, BARS, AREA
+}
+
 @Composable
 fun ItemScreen(
     itemId: Int,
@@ -52,15 +61,15 @@ fun ItemScreen(
     val iconRes: Int = R.drawable.ic_launcher_foreground
     val item = HomeItemDummy(itemId, "App $itemId", iconRes)
     
-    // Estado para controlar la visibilidad de la gráfica de barras
-    var showBarChart by remember { mutableStateOf(false) }
+    // Estado para controlar qué gráfica mostrar
+    var selectedChart by remember { mutableStateOf(ChartType.POINTS) }
 
     // Datos de prueba para las gráficas (EJE X -> Días, EJE Y -> Minutos)
     val dummyData = listOf(
         Pair(1, 45), Pair(3, 120), Pair(5, 30), Pair(7, 200),
         Pair(10, 80), Pair(15, 150), Pair(20, 10), Pair(25, 300),
         Pair(28, 60), Pair(30, 180)
-    )
+    ).sortedBy { it.first }
 
     Column(
         modifier = modifier
@@ -98,39 +107,29 @@ fun ItemScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        if (showBarChart) {
-            Text(
-                text = "Estadísticas de uso (Barras)",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.align(Alignment.Start)
-            )
+        Text(
+            text = when(selectedChart) {
+                ChartType.POINTS -> "Estadísticas: Puntos"
+                ChartType.BARS -> "Estadísticas: Barras"
+                ChartType.AREA -> "Estadísticas: Tendencia (Área)"
+            },
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.align(Alignment.Start)
+        )
 
-            Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-            UsageBarChart(
-                data = dummyData,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-        } else {
-
-            Text(
-                text = "Estadísticas de uso",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.align(Alignment.Start)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            UsageGraph(
-                data = dummyData,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            when (selectedChart) {
+                ChartType.POINTS -> UsageGraph(data = dummyData, modifier = Modifier.fillMaxSize())
+                ChartType.BARS -> UsageBarChart(data = dummyData, modifier = Modifier.fillMaxSize())
+                ChartType.AREA -> UsageAreaChart(data = dummyData, modifier = Modifier.fillMaxSize())
+            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -140,17 +139,21 @@ fun ItemScreen(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Button(
-                onClick = { showBarChart = !showBarChart },
+                onClick = { 
+                    selectedChart = if (selectedChart == ChartType.BARS) ChartType.POINTS else ChartType.BARS 
+                },
                 modifier = Modifier.weight(1f)
             ) {
-                Text(if (showBarChart) "Ocultar Barras" else "Ver Barras")
+                Text(if (selectedChart == ChartType.BARS) "Ver Puntos" else "Ver Barras")
             }
 
             Button(
-                onClick = {},
+                onClick = { 
+                    selectedChart = if (selectedChart == ChartType.AREA) ChartType.POINTS else ChartType.AREA 
+                },
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Botón 2")
+                Text(if (selectedChart == ChartType.AREA) "Ver Puntos" else "Tendencia")
             }
         }
     }
@@ -226,6 +229,74 @@ fun UsageBarChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
                 color = Color(0xFF6200EE),
                 topLeft = Offset(x, y),
                 size = Size(barWidth, barHeight)
+            )
+        }
+    }
+}
+
+@Composable
+fun UsageAreaChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
+    val maxDays = 31f
+    val maxMinutes = 350f
+    val textMeasurer = rememberTextMeasurer()
+    val textStyle = TextStyle(fontSize = 10.sp, color = Color.Gray)
+
+    Canvas(modifier = modifier) {
+        val width = size.width
+        val height = size.height
+        val marginLeft = 100f
+        val marginBottom = 80f
+        val chartWidth = width - marginLeft - 20f
+        val chartHeight = height - marginBottom - 20f
+
+        // Ejes
+        drawLine(Color.Black, Offset(marginLeft, 20f), Offset(marginLeft, height - marginBottom), 2f)
+        drawLine(Color.Black, Offset(marginLeft, height - marginBottom), Offset(width - 20f, height - marginBottom), 2f)
+
+        // Etiquetas Eje Y
+        listOf(0, 100, 200, 300).forEach { min ->
+            val y = (height - marginBottom) - (min / maxMinutes) * chartHeight
+            drawText(textMeasurer, min.toString(), Offset(marginLeft - 60f, y - 15f), textStyle)
+        }
+
+        if (data.isNotEmpty()) {
+            val path = Path()
+            val fillPath = Path()
+
+            data.forEachIndexed { index, (day, minutes) ->
+                val x = marginLeft + (day / maxDays) * chartWidth
+                val y = (height - marginBottom) - (minutes / maxMinutes) * chartHeight
+                
+                if (index == 0) {
+                    path.moveTo(x, y)
+                    fillPath.moveTo(x, height - marginBottom)
+                    fillPath.lineTo(x, y)
+                } else {
+                    path.lineTo(x, y)
+                    fillPath.lineTo(x, y)
+                }
+                
+                if (index == data.size - 1) {
+                    fillPath.lineTo(x, height - marginBottom)
+                    fillPath.close()
+                }
+            }
+
+            // Relleno degradado
+            drawPath(
+                path = fillPath,
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFF6200EE).copy(alpha = 0.5f), Color.Transparent),
+                    startY = 20f,
+                    endY = height - marginBottom
+                )
+            )
+
+            // Línea
+            drawPath(
+                path = path,
+                color = Color(0xFF6200EE),
+                style = Stroke(width = 4f, cap = StrokeCap.Round)
             )
         }
     }
