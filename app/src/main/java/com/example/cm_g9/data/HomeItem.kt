@@ -8,13 +8,13 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "home_items")
 data class HomeItem(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val name: String,
+    val id: Int = 0, // Para la BD
+    val name: String, // Para la BD (package name)
     val imageRes: Int,
-    val date: String = "22/02/2026",
-    val horaUsadas: Long = 2,
-    val minUsadas: Long = 3,
-    val segUsadas: Long = 45,
+    val date: String = "22/02/2026", // Para la BD
+    val horaUsadas: Long = 2, // Para BD
+    val minUsadas: Long = 3, // Para BD
+    val segUsadas: Long = 45, // Para BD
     val icono: Drawable = 0xFF0000FF.toInt().toDrawable(),
-    val habilitado: Boolean = true
+    val habilitado: Boolean = true // Para BD
 )

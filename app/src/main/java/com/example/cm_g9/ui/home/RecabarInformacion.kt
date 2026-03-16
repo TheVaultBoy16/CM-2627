@@ -48,7 +48,7 @@ class RecabarInformacion() {
 
         if (stats.isNotEmpty()) {
             for (usp in stats.values) {
-                val dire = usp.packageName
+                val dire = usp.packageName // Guardar en DB
                 if (dire.length > 4) {
                     val tiempoMs = usp.totalTimeInForeground
                     var segundos = tiempoMs / 1000
