@@ -8,6 +8,9 @@ import android.graphics.drawable.Drawable
 import androidx.room.TypeConverter
 import java.io.ByteArrayOutputStream
 
+
+// Conjunto de funciones útiles para la conversión de datos
+
 class Converters {
     @TypeConverter
     fun fromBitmap(bitmap: Bitmap): ByteArray {
