@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.cm_g9.ui.ajustes.AjusteVentana
 import com.example.cm_g9.ui.home.HomeScreen
 import com.example.cm_g9.ui.home.InitialScreen
 import com.example.cm_g9.ui.item.ItemScreen
@@ -41,7 +42,9 @@ fun ApplicationNavGraph(
                 }
             )
         }
-
+        composable(route = AjusteDestination.route){
+            AjusteVentana()
+        }
         composable(
             route = ItemDestination.routeWithArgs,
             arguments = listOf(navArgument(ItemDestination.itemIdArg) {
