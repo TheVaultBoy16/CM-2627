@@ -6,9 +6,15 @@ import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Process
 import android.provider.Settings
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.core.graphics.createBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cm_g9.R
@@ -19,6 +25,7 @@ import com.example.cm_g9.data.HomeItemDao
 import kotlinx.coroutines.launch
 
 class RecabarInformacion() : ViewModel(){
+
     val listaHome: MutableList<HomeItem> = mutableListOf()
     val listaHomeDB : MutableList<HomeItemDB> = mutableListOf()
     fun tienePermiso(context: Context): Boolean {
@@ -75,13 +82,38 @@ class RecabarInformacion() : ViewModel(){
                         HomeItem(id, nombreReal, iconRes, "TDB", horas, minutos, segundos,icon)
                     )
                     listaHomeDB.add(
-                        HomeItemDB(id = id , name = dire , horaUsadas = horas , minUsadas = minutos , segUsadas = segundos , habilitado = true)
+                        HomeItemDB( name = dire , horaUsadas = horas , minUsadas = minutos , segUsadas = segundos , habilitado = true)
                     )
                     id++
+                    //id = id,
                 }
             }
 
             viewModelScope.launch { dao.insertAll(listaHomeDB) }
         }
+    }
+    fun sacarIcono(dire: String , context: Context): BitmapPainter {
+        val drawable = context.packageManager.getApplicationIcon(dire)
+
+        val bitmap: Bitmap = if (drawable is BitmapDrawable) {
+            drawable.bitmap
+        } else {
+            val b = createBitmap(
+                drawable.intrinsicWidth.coerceAtLeast(1),
+                drawable.intrinsicHeight.coerceAtLeast(1)
+            )
+            val canvas = Canvas(b)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+            b
+        }
+        return BitmapPainter(bitmap.asImageBitmap())
+
+    }
+
+    fun sacarNomreReal(dire: String , context: Context): String {
+        return context.packageManager.getApplicationLabel(
+            context.packageManager.getApplicationInfo(dire, 0)
+        ).toString();
     }
 }

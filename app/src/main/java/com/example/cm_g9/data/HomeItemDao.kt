@@ -1,5 +1,6 @@
 package com.example.cm_g9.data
 
+import android.R
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -16,4 +17,8 @@ interface HomeItemDao {
 
     @Query("DELETE FROM home_items")
     suspend fun deleteAll()
+
+    @Query("DELETE FROM home_items WHERE name = :nombreIn")
+    suspend fun deleteOne(nombreIn : String)
+
 }
