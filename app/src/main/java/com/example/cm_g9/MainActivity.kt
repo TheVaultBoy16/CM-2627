@@ -19,9 +19,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
+import com.example.cm_g9.data.AppDatabase
 import com.example.cm_g9.ui.home.RecabarInformacion
 import com.example.cm_g9.ui.navigation.ApplicationNavGraph
 import com.example.cm_g9.ui.navigation.HomeDestination
@@ -34,9 +35,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         val info = RecabarInformacion()
         info.pedirPermisos(this)
+
 
         setContent {
             CMG9Theme {

@@ -93,7 +93,6 @@ fun AjusteVentana(modifier: Modifier = Modifier){
 
 
 }
-
 @Composable
 fun AjustesItemCard(item: HomeItem, modifier: Modifier = Modifier){
 

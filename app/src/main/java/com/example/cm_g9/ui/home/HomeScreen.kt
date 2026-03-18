@@ -1,5 +1,6 @@
 package com.example.cm_g9.ui.home
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
@@ -36,7 +37,9 @@ import androidx.compose.ui.unit.dp
 import com.example.cm_g9.R
 import com.example.cm_g9.data.HomeItem
 import androidx.core.graphics.createBitmap
+import com.example.cm_g9.data.AppDatabase
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun HomeScreen(
     onItemClick: (Int) -> Unit,
@@ -44,8 +47,12 @@ fun HomeScreen(
     onAjustes : () -> Unit
 ) {
     val iconRes: Int = R.drawable.ic_launcher_foreground
-    var recabarInformacion = RecabarInformacion()//Comentar esto para ver el preload
-    recabarInformacion.optenerInfoApp(LocalContext.current);//Comentar esto para ver el preload
+
+
+
+
+    var recabarInformacion = RecabarInformacion( )//Comentar esto para ver el preload
+    recabarInformacion.optenerInfoApp(LocalContext.current );//Comentar esto para ver el preload
     val items = recabarInformacion.listaHome; //Comentar esto para ver el preload
     //Descomentar lo de abajo para ver el preload
 /*        listOf(

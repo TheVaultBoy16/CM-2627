@@ -9,12 +9,18 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Process
 import android.provider.Settings
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.cm_g9.R
+import com.example.cm_g9.data.AppDatabase
 import com.example.cm_g9.data.HomeItem
+import com.example.cm_g9.data.HomeItemDB
+import com.example.cm_g9.data.HomeItemDao
+import kotlinx.coroutines.launch
 
-class RecabarInformacion() {
+class RecabarInformacion() : ViewModel(){
     val listaHome: MutableList<HomeItem> = mutableListOf()
-
+    val listaHomeDB : MutableList<HomeItemDB> = mutableListOf()
     fun tienePermiso(context: Context): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
         val mode = appOps.checkOpNoThrow(
@@ -24,14 +30,12 @@ class RecabarInformacion() {
         )
         return mode == AppOpsManager.MODE_ALLOWED
     }
-
     fun pedirPermisos(context: Context) {
         if (!tienePermiso(context)) {
             val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
             context.startActivity(intent)
         }
     }
-
     fun optenerInfoApp(context: Context) {
         if (!tienePermiso(context)) return
 
@@ -45,7 +49,11 @@ class RecabarInformacion() {
         val iconRes: Int = R.drawable.ic_launcher_foreground
         val pm = context.packageManager;
 
+        //val objBDPru = HomeItemDB(name = "pruebaBD");
 
+        //viewModelScope.launch { dao.insertAll(listOf(objBDPru)) }
+
+        val dao = AppDatabase.getDatabase(context).homeItemDao()
         if (stats.isNotEmpty()) {
             for (usp in stats.values) {
                 val dire = usp.packageName // Guardar en DB
@@ -66,9 +74,14 @@ class RecabarInformacion() {
                     listaHome.add(
                         HomeItem(id, nombreReal, iconRes, "TDB", horas, minutos, segundos,icon)
                     )
+                    listaHomeDB.add(
+                        HomeItemDB(id = id , name = dire , horaUsadas = horas , minUsadas = minutos , segUsadas = segundos , habilitado = true)
+                    )
                     id++
                 }
             }
+
+            viewModelScope.launch { dao.insertAll(listaHomeDB) }
         }
     }
 }
