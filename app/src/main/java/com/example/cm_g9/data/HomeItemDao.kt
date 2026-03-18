@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -17,6 +18,9 @@ interface HomeItemDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: HomeItemDB)
+
+    @Upsert
+    suspend fun upsert(item: HomeItemDB)
 
     @Query("DELETE FROM home_items")
     suspend fun deleteAll()
