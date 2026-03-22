@@ -70,7 +70,7 @@ fun HomeScreen(
         Button(
             onClick = { onAjustes() }
         ) {
-            Text("Enviar")
+            Text("Ajustes")
         }
         LazyColumn(
             modifier = modifier,
