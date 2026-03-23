@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,29 +39,34 @@ import androidx.compose.ui.unit.dp
 import com.example.cm_g9.R
 import com.example.cm_g9.data.HomeItem
 
-
 @Composable
 fun AjusteVentana(modifier: Modifier = Modifier){
     val iconRes: Int = R.drawable.ic_launcher_foreground
-    val items = listOf(
-        HomeItem(1, "App 1", iconRes),
-        HomeItem(2, "App 2", iconRes),
-        HomeItem(3, "App 3", iconRes),
-        HomeItem(4, "App 4", iconRes),
-        HomeItem(5, "App 5", iconRes),
-        HomeItem(6, "App 6", iconRes),
-        HomeItem(7, "App 7", iconRes),
-        HomeItem(8, "App 8", iconRes),
+    var itemsState by remember { 
+        mutableStateOf(
+            listOf(
+                HomeItem(1, "App 1", iconRes, habilitado = true),
+                HomeItem(2, "App 2", iconRes, habilitado = true),
+                HomeItem(3, "App 3", iconRes, habilitado = true),
+                HomeItem(4, "App 4", iconRes, habilitado = true),
+                HomeItem(5, "App 5", iconRes, habilitado = true),
+                HomeItem(6, "App 6", iconRes, habilitado = true),
+                HomeItem(7, "App 7", iconRes, habilitado = true),
+                HomeItem(8, "App 8", iconRes, habilitado = true),
+            )
         )
+    }
+
     var numero by remember { mutableStateOf("") }
-    Column() {
+    Column {
         Spacer(modifier = Modifier.height(16.dp))
         Row(
-            verticalAlignment = Alignment.CenterVertically
-        )
-        {
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
             Text(
-                text = "Tiempo de actualizacion",
+                text = "Tiempo de actualización",
+                modifier = Modifier.weight(1f)
             )
 
             TextField(
@@ -69,7 +75,8 @@ fun AjusteVentana(modifier: Modifier = Modifier){
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number
                 ),
-                label = { Text("Número") }
+                label = { Text("Segundos") },
+                modifier = Modifier.width(120.dp)
             )
         }
 
@@ -82,28 +89,39 @@ fun AjusteVentana(modifier: Modifier = Modifier){
             item {
                 HorizontalDivider(color = Color.Black)
             }
-            items(items) { item ->
+            items(itemsState) { item ->
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AjustesItemCard(item = item)
+                    AjustesItemCard(
+                        item = item,
+                        onCheckedChange = { isChecked ->
+                            // Actualizamos el estado de la lista al deslizar el switch
+                            itemsState = itemsState.map {
+                                if (it.id == item.id) it.copy(habilitado = isChecked) else it
+                            }
+                        }
+                    )
                     HorizontalDivider(color = Color.Black)
                 }
             }
         }
     }
-
-
 }
-@Composable
-fun AjustesItemCard(item: HomeItem, modifier: Modifier = Modifier){
 
+@Composable
+fun AjustesItemCard(
+    item: HomeItem, 
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+){
     Card(
         modifier = modifier.fillMaxWidth()
     ){
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
-
         ) {
             Image(
                 painter = painterResource(id = item.imageRes),
@@ -113,27 +131,19 @@ fun AjustesItemCard(item: HomeItem, modifier: Modifier = Modifier){
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop
             )
-            Spacer( modifier = Modifier.width( 8.dp ) )
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = item.name,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
             )
 
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.CenterEnd
-
-            ){
-                Switch(
-                    checked = true,
-                    onCheckedChange = { false }
-                )
-            }
-
+            Switch(
+                checked = item.habilitado,
+                onCheckedChange = onCheckedChange
+            )
         }
     }
-
-
 }
 
 @Preview(showBackground = true)
@@ -141,3 +151,5 @@ fun AjustesItemCard(item: HomeItem, modifier: Modifier = Modifier){
 fun AjustesVentanaPreview(){
     AjusteVentana()
 }
+
+
