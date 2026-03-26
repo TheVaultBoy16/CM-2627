@@ -1,5 +1,8 @@
 package com.example.cm_g9.ui.item
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +33,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -37,7 +44,14 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.createBitmap
 import com.example.cm_g9.R
+import com.example.cm_g9.data.AppDatabase
+import com.example.cm_g9.data.HomeItemDB
+import com.example.cm_g9.data.HomeItemFechas
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 data class HomeItemDummy( // Clase para probar la interfaz, quitar para meter los datos reales
     val id: Int,
@@ -60,9 +74,27 @@ fun ItemScreen(
 ) {
     val iconRes: Int = R.drawable.ic_launcher_foreground
     val item = HomeItemDummy(itemId, "App $itemId", iconRes)
-    
+    //Obtener la fecha actual
+    val fechaActual = Calendar.getInstance().time
+    val formato = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+    val fechaFormateada = formato.format(fechaActual)
+
     // Estado para controlar qué gráfica mostrar
     var selectedChart by remember { mutableStateOf(ChartType.POINTS) }
+    val dao = AppDatabase.getDatabase(LocalContext.current).homeItemDao()
+    var items by remember { mutableStateOf<List<HomeItemDB>>(emptyList()) }
+    var itemsFecha by remember { mutableStateOf<List<HomeItemFechas>>(emptyList()) }
+    var appAMirar = HomeItemDB( name = "nada", habilitado = true)
+    var usoActual = HomeItemFechas( name = "Nada" , date = "0/0/0" ,  horaUsadas = 99 , minUsadas = 99 , segUsadas = 99 )
+    LaunchedEffect(Unit) {
+        items = dao.getPorId(itemId);
+        appAMirar = items.firstOrNull() ?: HomeItemDB(name = "nada", habilitado = true)
+        itemsFecha = dao.getFechaPorApli(appAMirar.name)
+        //(items.firstOrNull() ?: HomeItemDB(name = "nada", habilitado = true))
+    }
+    appAMirar = items.firstOrNull() ?: HomeItemDB(name = "nada", habilitado = true)
+    usoActual = itemsFecha.find { it.date == fechaFormateada }?: HomeItemFechas( name = "Nada" , date = "0/0/0" ,  horaUsadas = 99 , minUsadas = 99 , segUsadas = 99 )
+
 
     // Datos de prueba para las gráficas (EJE X -> Días del mes, EJE Y -> Minutos por ese día)
     val dummyData = listOf(
@@ -82,7 +114,7 @@ fun ItemScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = item.imageRes),
+                painter =  painterResource(id = item.imageRes),
                 contentDescription = "App Image",
                 modifier = Modifier.size(100.dp)
             )
@@ -94,12 +126,12 @@ fun ItemScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = item.name,
+                    text = sacarNomreReal( appAMirar.name , LocalContext.current ),
                     style = MaterialTheme.typography.headlineSmall
                 )
 
                 Text(
-                    text = "Tiempo de uso: ${item.horaUsadas}:${item.minUsadas}:${item.segUsadas}",
+                    text = "Tiempo de uso: ${usoActual.horaUsadas}:${usoActual.minUsadas}:${usoActual.segUsadas}",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -367,4 +399,34 @@ fun UsageGraph(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
 @Composable
 fun ItemScreenPreview() {
     ItemScreen(itemId = 1)
+}
+
+
+fun sacarIcono(dire: String , context: Context): BitmapPainter {
+    val drawable = context.packageManager.getApplicationIcon(dire)
+
+    val bitmap: Bitmap = if (drawable is BitmapDrawable) {
+        drawable.bitmap
+    } else {
+        val b = createBitmap(
+            drawable.intrinsicWidth.coerceAtLeast(1),
+            drawable.intrinsicHeight.coerceAtLeast(1)
+        )
+        val canvas = android.graphics.Canvas(b)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        b
+    }
+    return BitmapPainter(bitmap.asImageBitmap())
+
+}
+
+fun sacarNomreReal(dire: String , context: Context): String {
+    var res = "nada";
+    if(dire != "nada"){
+        res = context.packageManager.getApplicationLabel(
+            context.packageManager.getApplicationInfo(dire, 0)
+        ).toString();
+    }
+    return res
 }

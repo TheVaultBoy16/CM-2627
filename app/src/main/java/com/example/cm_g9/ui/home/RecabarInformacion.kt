@@ -22,12 +22,18 @@ import com.example.cm_g9.data.AppDatabase
 import com.example.cm_g9.data.HomeItem
 import com.example.cm_g9.data.HomeItemDB
 import com.example.cm_g9.data.HomeItemDao
+import com.example.cm_g9.data.HomeItemFechas
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class RecabarInformacion() : ViewModel(){
 
     val listaHome: MutableList<HomeItem> = mutableListOf()
     val listaHomeDB : MutableList<HomeItemDB> = mutableListOf()
+
+    val listaHomeItemFechas : MutableList<HomeItemFechas> = mutableListOf()
     fun tienePermiso(context: Context): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
         val mode = appOps.checkOpNoThrow(
@@ -46,9 +52,33 @@ class RecabarInformacion() : ViewModel(){
     fun optenerInfoApp(context: Context) {
         if (!tienePermiso(context)) return
 
+
+        /*
+        La fecha se obtendria en
+
+
+
+         */
+        val fechaActual = Calendar.getInstance().time
+        val formato = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+        val fechaFormateada = formato.format(fechaActual)
+
         val uso: UsageStatsManager? = context.getSystemService(UsageStatsManager::class.java)
+        /*
+        Para obtener horas minutos y segundo seria
+        val horaActual = LocalTime.now()
+
+        val hora = horaActual.hour        // 0-23
+        val minutos = horaActual.minute   // 0-59
+        val segundos = horaActual.second  // 0-59
+         */
+
+        //Las tiempos estan en miliSegundos
         val tiempoActual = System.currentTimeMillis()
-        val inicio = tiempoActual - (1000 * 60 * 60 * 24) // últimas 24 horas
+        //Si el inicio se pone a 0 en long sera las 12 de la noche
+        val inicio = 0L//tiempoActual - (1000 * 60 * 60 * 24) // últimas 24 horas
+        //Esto tenemos que hacer de alguna forma que calcule desde ahora hasta las 12 por ejemplo
+        //Es mas sencillo de lo que parece si obtenemos el dateTime
         val stats: Map<String, UsageStats> =
             uso?.queryAndAggregateUsageStats(inicio, tiempoActual) ?: emptyMap()
         
@@ -81,39 +111,26 @@ class RecabarInformacion() : ViewModel(){
                     listaHome.add(
                         HomeItem(id, nombreReal, iconRes, "TDB", horas, minutos, segundos,icon)
                     )
+                    //Aqui hay que añadir en la base de datos. Fecha hoy Aunque creo que no hace falta si obtenemos el date time
                     listaHomeDB.add(
-                        HomeItemDB( name = dire , horaUsadas = horas , minUsadas = minutos , segUsadas = segundos , habilitado = true)
+                        HomeItemDB( name = dire, habilitado = true)
                     )
+                    listaHomeItemFechas.add(
+                        HomeItemFechas( name = dire , date = fechaFormateada ,  horaUsadas = horas , minUsadas = minutos , segUsadas = segundos)
+                    )
+                    /*listaHomeItemFechas.add(
+                        HomeItemFechas( name = dire , date = "19/03/2026" , horaUsadas = horas , minUsadas = minutos , segUsadas = segundos )
+                    )
+                    listaHomeItemFechas.add(
+                        HomeItemFechas( name = dire , date = "19/04/2026" , horaUsadas = horas , minUsadas = minutos , segUsadas = segundos )
+                    )*/
                     id++
                     //id = id,
                 }
             }
 
             viewModelScope.launch { dao.insertAll(listaHomeDB) }
+            viewModelScope.launch { dao.insertAllFechas(listaHomeItemFechas) }
         }
-    }
-    fun sacarIcono(dire: String , context: Context): BitmapPainter {
-        val drawable = context.packageManager.getApplicationIcon(dire)
-
-        val bitmap: Bitmap = if (drawable is BitmapDrawable) {
-            drawable.bitmap
-        } else {
-            val b = createBitmap(
-                drawable.intrinsicWidth.coerceAtLeast(1),
-                drawable.intrinsicHeight.coerceAtLeast(1)
-            )
-            val canvas = Canvas(b)
-            drawable.setBounds(0, 0, canvas.width, canvas.height)
-            drawable.draw(canvas)
-            b
-        }
-        return BitmapPainter(bitmap.asImageBitmap())
-
-    }
-
-    fun sacarNomreReal(dire: String , context: Context): String {
-        return context.packageManager.getApplicationLabel(
-            context.packageManager.getApplicationInfo(dire, 0)
-        ).toString();
     }
 }

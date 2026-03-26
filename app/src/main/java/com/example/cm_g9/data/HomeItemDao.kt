@@ -4,48 +4,40 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
-import androidx.room.Upsert
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface HomeItemDao {
+    //Devolver todos los datos
     @Query("SELECT * FROM home_items ORDER BY name ASC")
-    fun getAllItems(): Flow<List<HomeItemDB>>
+    suspend fun getAllItems(): List<HomeItemDB>
+    @Query("SELECT * FROM home_items WHERE id = :id LIMIT 1")
+    suspend fun getPorId(id: Int): List<HomeItemDB>
+    @Query("SELECT * FROM home_items_fechas WHERE name = :nombreId AND date = :fechaString")
+    suspend fun getPorFechaApli(nombreId: String , fechaString : String): List<HomeItemFechas>
 
+    @Query("SELECT * FROM home_items_fechas WHERE date = :fechaString")
+    suspend fun getApliPorFecha( fechaString : String): List<HomeItemFechas>
+
+    @Query("SELECT * FROM home_items_fechas WHERE name = :name")
+    suspend fun getFechaPorApli( name : String): List<HomeItemFechas>
+
+    //Insertar una lista de datos
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(items: List<HomeItemDB>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(item: HomeItemDB)
+    suspend fun insertAllFechas(items : List<HomeItemFechas>)
 
-    @Upsert
-    suspend fun upsert(item: HomeItemDB)
-
+    //Borrar toda la lista
     @Query("DELETE FROM home_items")
     suspend fun deleteAll()
+    @Query("DELETE FROM home_items_fechas")
+    suspend fun deleteAllFechas()
 
+    //Borrar por un nombre
     @Query("DELETE FROM home_items WHERE name = :nombreIn")
     suspend fun deleteOne(nombreIn : String)
-
-    @Query("""
-        UPDATE home_items 
-        SET date = :date, 
-            horaUsadas = :horaUsadas, 
-            minUsadas = :minUsadas, 
-            segUsadas = :segUsadas, 
-            habilitado = :habilitado 
-        WHERE name = :name
-    """)
-    suspend fun updateByName(
-        name: String,
-        date: String,
-        horaUsadas: Long,
-        minUsadas: Long,
-        segUsadas: Long,
-        habilitado: Boolean
-    )
-
-    @Update
-    suspend fun update(item: HomeItemDB)
+    //Borramos fecha de una aplicacion
+    @Query("DELETE FROM home_items_fechas WHERE name = :nombreIn")
+    suspend fun deleteOneFecha(nombreIn: String)
 }
