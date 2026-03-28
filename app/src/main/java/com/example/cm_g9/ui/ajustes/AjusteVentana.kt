@@ -50,6 +50,7 @@ fun AjusteVentana(modifier: Modifier = Modifier){
     }
     val iconRes: Int = R.drawable.ic_launcher_foreground
     val scope = rememberCoroutineScope()
+
     /*var itemsState by remember {
         mutableStateOf(
             listOf(
