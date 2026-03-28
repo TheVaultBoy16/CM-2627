@@ -59,9 +59,7 @@ class RecabarInformacion() : ViewModel(){
 
 
          */
-        val fechaActual = Calendar.getInstance().time
-        val formato = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
-        val fechaFormateada = formato.format(fechaActual)
+
 
         val uso: UsageStatsManager? = context.getSystemService(UsageStatsManager::class.java)
         /*
@@ -74,14 +72,26 @@ class RecabarInformacion() : ViewModel(){
          */
 
         //Las tiempos estan en miliSegundos
-        val tiempoActual = System.currentTimeMillis()
+        val ahoraMili = System.currentTimeMillis()
+        var tiempoActual = ahoraMili;
         //Si el inicio se pone a 0 en long sera las 12 de la noche
-        val inicio = 0L//tiempoActual - (1000 * 60 * 60 * 24) // últimas 24 horas
+        var inicio = 0L//tiempoActual - (1000 * 60 * 60 * 24) // últimas 24 horas
         //Esto tenemos que hacer de alguna forma que calcule desde ahora hasta las 12 por ejemplo
         //Es mas sencillo de lo que parece si obtenemos el dateTime
-        val stats: Map<String, UsageStats> =
-            uso?.queryAndAggregateUsageStats(inicio, tiempoActual) ?: emptyMap()
-        
+        val franjas = arrayOf(
+            0L ,
+            ahoraMili ,
+            ahoraMili - (1000 * 60 * 60 * 24) ,
+            ahoraMili - 2*(1000 * 60 * 60 * 24) ,
+            ahoraMili - 3*(1000 * 60 * 60 * 24) ,
+            ahoraMili - 4*(1000 * 60 * 60 * 24) ,
+            ahoraMili - 5*(1000 * 60 * 60 * 24) ,
+            ahoraMili - 6*(1000 * 60 * 60 * 24) ,
+            ahoraMili - 7*(1000 * 60 * 60 * 24) )
+
+
+
+
         var id = 1
         val iconRes: Int = R.drawable.ic_launcher_foreground
         val pm = context.packageManager;
@@ -91,33 +101,49 @@ class RecabarInformacion() : ViewModel(){
         //viewModelScope.launch { dao.insertAll(listOf(objBDPru)) }
 
         val dao = AppDatabase.getDatabase(context).homeItemDao()
-        if (stats.isNotEmpty()) {
-            for (usp in stats.values) {
-                val dire = usp.packageName // Guardar en DB
-                if (dire.length > 4) {
-                    val tiempoMs = usp.totalTimeInForeground
-                    var segundos = tiempoMs / 1000
-                    var minutos = segundos / 60
-                    val horas = minutos / 60
-                    segundos %= 60
-                    minutos %= 60
+        val calendar = Calendar.getInstance()
+        for(i in 0..7){
+            inicio = franjas.get(i+1);
+            tiempoActual = franjas.get(i);
 
-                    val nombre = dire.split(".").last()
-                    val icon = pm.getApplicationIcon(dire)
-                    val nombreReal = pm.getApplicationLabel(
-                        pm.getApplicationInfo(dire,0)
-                    ).toString()
+            //Con esto tendria las fechas
 
-                    listaHome.add(
-                        HomeItem(id, nombreReal, iconRes, "TDB", horas, minutos, segundos,icon)
-                    )
-                    //Aqui hay que añadir en la base de datos. Fecha hoy Aunque creo que no hace falta si obtenemos el date time
-                    listaHomeDB.add(
-                        HomeItemDB( name = dire, habilitado = true)
-                    )
-                    listaHomeItemFechas.add(
-                        HomeItemFechas( name = dire , date = fechaFormateada ,  horaUsadas = horas , minUsadas = minutos , segUsadas = segundos)
-                    )
+            calendar.add(Calendar.DAY_OF_YEAR, -i-1)
+            val fechaActual = calendar.time
+            val formato = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+            val fechaFormateada = formato.format(fechaActual)
+
+            val stats: Map<String, UsageStats> =
+                uso?.queryAndAggregateUsageStats(inicio, tiempoActual) ?: emptyMap()
+            if (stats.isNotEmpty()) {
+                for (usp in stats.values) {
+                    val dire = usp.packageName // Guardar en DB
+                    if (dire.length > 4) {
+                        val tiempoMs = usp.totalTimeInForeground
+                        var segundos = tiempoMs / 1000
+                        var minutos = segundos / 60
+                        val horas = minutos / 60
+                        segundos %= 60
+                        minutos %= 60
+
+                        //Esto ya no deveria de hacer falta
+                        /*listaHome.add(
+                            HomeItem(id, nombreReal, iconRes, "TDB", horas, minutos, segundos,icon)
+                        )*/
+                        //Aqui hay que añadir en la base de datos. Fecha hoy Aunque creo que no hace falta si obtenemos el date time
+                        if(i == 1){
+                            listaHomeDB.add(
+                                HomeItemDB( name = dire, habilitado = true)
+                            )
+                        }
+
+                        listaHomeItemFechas.add(
+                            HomeItemFechas( name = dire , date = fechaFormateada ,  horaUsadas = horas , minUsadas = minutos , segUsadas = segundos)
+                        )
+
+        }
+
+
                     /*listaHomeItemFechas.add(
                         HomeItemFechas( name = dire , date = "19/03/2026" , horaUsadas = horas , minUsadas = minutos , segUsadas = segundos )
                     )
@@ -128,9 +154,8 @@ class RecabarInformacion() : ViewModel(){
                     //id = id,
                 }
             }
-
-            viewModelScope.launch { dao.insertAll(listaHomeDB) }
-            viewModelScope.launch { dao.insertAllFechas(listaHomeItemFechas) }
         }
+        viewModelScope.launch { dao.insertAll(listaHomeDB) }
+        viewModelScope.launch { dao.insertAllFechas(listaHomeItemFechas) }
     }
 }

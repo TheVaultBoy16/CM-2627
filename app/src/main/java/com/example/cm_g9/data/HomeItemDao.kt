@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface HomeItemDao {
@@ -40,4 +41,7 @@ interface HomeItemDao {
     //Borramos fecha de una aplicacion
     @Query("DELETE FROM home_items_fechas WHERE name = :nombreIn")
     suspend fun deleteOneFecha(nombreIn: String)
+
+    @Update
+    suspend fun updateItem(item: HomeItemDB)
 }

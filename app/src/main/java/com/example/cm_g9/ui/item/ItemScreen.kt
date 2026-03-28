@@ -97,18 +97,42 @@ fun ItemScreen(
 
 
     // Datos de prueba para las gráficas (EJE X -> Días del mes, EJE Y -> Minutos por ese día)
-    val dummyData = listOf(
-        Pair(1, 45), Pair(3, 120), Pair(5, 30), Pair(7, 200),
-        Pair(10, 80), Pair(15, 150), Pair(20, 10), Pair(25, 300),
-        Pair(28, 60), Pair(30, 180)
-    ).sortedBy { it.first }
+    //var dummyData = listOf(
+    //    Pair(1, 45), Pair(3, 120), Pair(5, 30), Pair(7, 200),
+    //    Pair(10, 80), Pair(15, 150), Pair(20, 10), Pair(25, 300),
+    //    Pair(28, 60), Pair(30, 180)
+    //).sortedBy { it.first }
+    //Tengo que hacerla de nuevi
+    val dummyData = mutableListOf<Pair<Int, Int>> ();
+    var dummyPruebas = mutableListOf<Pair<String, String>>();
+    val calendar = Calendar.getInstance()
+    var fechaEnLista = HomeItemFechas( name = "Nada" , date = "0/0/0" ,  horaUsadas = 99 , minUsadas = 99 , segUsadas = 99 );
+    for(i in 0..7){
+        calendar.add(Calendar.DAY_OF_YEAR, -i-1)
+        val fechaActual = calendar.time
+        val formato = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+        val fechaFormateada = formato.format(fechaActual)
+        fechaEnLista = itemsFecha.find { it.date == fechaFormateada }?: HomeItemFechas( name = "Nada" , date = "0/0/0" ,  horaUsadas = 99 , minUsadas = 99 , segUsadas = 99 );
+        dummyPruebas.add(Pair(fechaFormateada , fechaEnLista.name) )
+        if(fechaEnLista.name != "Nada" ){
+            dummyData.add( Pair(
+                (7-i) ,
+                (fechaEnLista.minUsadas + fechaEnLista.horaUsadas*60 ).toInt()
+                )
+            )
+        }
+
+    }
+
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
+
     ) {
+        Text(dummyPruebas.toString())
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -193,7 +217,7 @@ fun ItemScreen(
 
 @Composable
 fun UsageBarChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
-    val maxDays = 31
+    val maxDays = 7
     val maxMinutes = 350
     val textMeasurer = rememberTextMeasurer()
     val textStyle = TextStyle(fontSize = 10.sp, color = Color.Gray)
@@ -239,7 +263,7 @@ fun UsageBarChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
         }
 
         // Etiquetas Eje X
-        val xSteps = listOf(1, 10, 20, 30)
+        val xSteps = listOf(1, 3, 5, 7)
         xSteps.forEach { day ->
             val x = marginLeft + (day.toFloat() / maxDays) * chartWidth
             drawText(
@@ -268,7 +292,7 @@ fun UsageBarChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
 
 @Composable
 fun UsageAreaChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
-    val maxDays = 31f
+    val maxDays = 7f
     val maxMinutes = 350f
     val textMeasurer = rememberTextMeasurer()
     val textStyle = TextStyle(fontSize = 10.sp, color = Color.Gray)
@@ -336,7 +360,7 @@ fun UsageAreaChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
 
 @Composable
 fun UsageGraph(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
-    val maxDays = 31
+    val maxDays = 7
     val maxMinutes = 350 
     val textMeasurer = rememberTextMeasurer()
     val textStyle = TextStyle(fontSize = 10.sp, color = Color.Gray)
@@ -371,7 +395,7 @@ fun UsageGraph(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
             )
         }
 
-        val xSteps = listOf(1, 10, 20, 30)
+        val xSteps = listOf(1, 3, 5, 7)
         xSteps.forEach { day ->
             val x = marginLeft + (day.toFloat() / maxDays) * (width - marginLeft - 20f)
             drawText(

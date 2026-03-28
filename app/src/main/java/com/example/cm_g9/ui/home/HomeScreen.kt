@@ -95,7 +95,7 @@ fun HomeScreen(
         itemsFecha = dao.getApliPorFecha(fechaFormateada)
 
     }
-
+    val itemsFilter = items.filter { it.habilitado }
     Column() {
         Button(
             onClick = { onAjustes() }
@@ -110,7 +110,7 @@ fun HomeScreen(
             item {
                 HorizontalDivider(color = Color.Black)
             }
-            items(items) { item ->
+            items(itemsFilter) { item ->
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     HomeItemCard(
                         item = item,

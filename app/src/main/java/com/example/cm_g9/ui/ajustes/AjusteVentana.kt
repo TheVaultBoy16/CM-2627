@@ -1,8 +1,8 @@
 package com.example.cm_g9.ui.ajustes
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,34 +15,42 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cm_g9.R
-import com.example.cm_g9.data.HomeItem
+import com.example.cm_g9.data.AppDatabase
+import com.example.cm_g9.data.HomeItemDB
+import kotlinx.coroutines.launch
 
 @Composable
 fun AjusteVentana(modifier: Modifier = Modifier){
+    val dao = AppDatabase.getDatabase(LocalContext.current).homeItemDao()
+    var itemsState by remember { mutableStateOf<List<HomeItemDB>>(emptyList()) }
+    LaunchedEffect(Unit) {
+        itemsState = dao.getAllItems()
+    }
     val iconRes: Int = R.drawable.ic_launcher_foreground
-    var itemsState by remember { 
+    val scope = rememberCoroutineScope()
+    /*var itemsState by remember {
         mutableStateOf(
             listOf(
                 HomeItem(1, "App 1", iconRes, habilitado = true),
@@ -55,8 +63,8 @@ fun AjusteVentana(modifier: Modifier = Modifier){
                 HomeItem(8, "App 8", iconRes, habilitado = true),
             )
         )
-    }
-
+    }*/
+    var textoPruebas = "Pruebas"
     var numero by remember { mutableStateOf("") }
     Column {
         Spacer(modifier = Modifier.height(16.dp))
@@ -65,11 +73,11 @@ fun AjusteVentana(modifier: Modifier = Modifier){
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
             Text(
-                text = "Tiempo de actualización",
+                text = textoPruebas,
                 modifier = Modifier.weight(1f)
             )
 
-            TextField(
+            /*TextField(
                 value = numero,
                 onValueChange = { numero = it },
                 keyboardOptions = KeyboardOptions(
@@ -77,7 +85,7 @@ fun AjusteVentana(modifier: Modifier = Modifier){
                 ),
                 label = { Text("Segundos") },
                 modifier = Modifier.width(120.dp)
-            )
+            )*/
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -95,8 +103,18 @@ fun AjusteVentana(modifier: Modifier = Modifier){
                         item = item,
                         onCheckedChange = { isChecked ->
                             // Actualizamos el estado de la lista al deslizar el switch
+                            //textoPruebas = item.id.toString()
+                            println("Item seleccionado con id: ${item.id}")
                             itemsState = itemsState.map {
-                                if (it.id == item.id) it.copy(habilitado = isChecked) else it
+
+                                if (it.id == item.id){
+                                    it.copy(habilitado = isChecked)
+                                } else {
+                                    it
+                                }
+                            }
+                            scope.launch {
+                                dao.updateItem(item.copy(habilitado = isChecked))
                             }
                         }
                     )
@@ -109,7 +127,7 @@ fun AjusteVentana(modifier: Modifier = Modifier){
 
 @Composable
 fun AjustesItemCard(
-    item: HomeItem, 
+    item: HomeItemDB,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ){
@@ -123,17 +141,17 @@ fun AjustesItemCard(
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
+            /*Image(
                 painter = painterResource(id = item.imageRes),
                 contentDescription = null,
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop
-            )
+            )*/
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = item.name,
+                text =  sacarNomreReal(item.name , LocalContext.current),//item.name,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f)
             )
@@ -144,6 +162,11 @@ fun AjustesItemCard(
             )
         }
     }
+}
+fun sacarNomreReal(dire: String , context: Context): String {
+    return context.packageManager.getApplicationLabel(
+        context.packageManager.getApplicationInfo(dire, 0)
+    ).toString();
 }
 
 @Preview(showBackground = true)

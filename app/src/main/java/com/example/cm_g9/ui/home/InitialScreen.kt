@@ -29,6 +29,7 @@ fun InitialScreen(
 
 
 ) {
+    //Eso da grandes problemas en el contexto de que recaba informacion antes de pedir los permisos
     var recabarInformacion = RecabarInformacion( )//Comentar esto para ver el preload
     recabarInformacion.optenerInfoApp(LocalContext.current );
     Box(
