@@ -92,48 +92,38 @@ fun ItemScreen(
         items = dao.getPorId(itemId);
         appAMirar = items.firstOrNull() ?: HomeItemDB(name = "nada", habilitado = true)
         itemsFecha = dao.getFechaPorApli(appAMirar.name)
-        //(items.firstOrNull() ?: HomeItemDB(name = "nada", habilitado = true))
     }
     appAMirar = items.firstOrNull() ?: HomeItemDB(name = "nada", habilitado = true)
     usoActual = itemsFecha.find { it.date == fechaFormateada }?: HomeItemFechas( name = "Nada" , date = "0/0/0" ,  horaUsadas = 99 , minUsadas = 99 , segUsadas = 99 )
 
 
-    // Datos de prueba para las gráficas (EJE X -> Días del mes, EJE Y -> Minutos por ese día)
-    //var dummyData = listOf(
-    //    Pair(1, 45), Pair(3, 120), Pair(5, 30), Pair(7, 200),
-    //    Pair(10, 80), Pair(15, 150), Pair(20, 10), Pair(25, 300),
-    //    Pair(28, 60), Pair(30, 180)
-    //).sortedBy { it.first }
-    //Tengo que hacerla de nuevi
-    val dummyData = mutableListOf<Pair<Int, Int>> ();
-    var dummyPruebas = mutableListOf<Pair<String, String>>();
+    // Datos reales para los últimos 7 días
+    val dummyData = mutableListOf<Pair<String, Int>>()
     val calendar = Calendar.getInstance()
-    var fechaEnLista = HomeItemFechas( name = "Nada" , date = "0/0/0" ,  horaUsadas = 99 , minUsadas = 99 , segUsadas = 99 );
-    var fechaMaxima = -1
-    var fechaAux = -1
-    for(i in 0..7){
-        calendar.add(Calendar.DAY_OF_YEAR, -i-1)
-        val fechaActual = calendar.time
-        val formato = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
-        val fechaFormateada = formato.format(fechaActual)
-        fechaEnLista = itemsFecha.find { it.date == fechaFormateada }?: HomeItemFechas( name = "Nada" , date = "0/0/0" ,  horaUsadas = 99 , minUsadas = 99 , segUsadas = 99 );
-        dummyPruebas.add(Pair(fechaFormateada , fechaEnLista.name) )
-        if(fechaEnLista.name != "Nada" ){
-            fechaAux = (fechaEnLista.minUsadas + fechaEnLista.horaUsadas*60 ).toInt()
-            dummyData.add( Pair(
-                (7-i) ,
-                fechaAux)
-            )
-            if(fechaAux > fechaMaxima){
-                fechaMaxima = fechaAux
-            }
-
+    calendar.add(Calendar.DAY_OF_YEAR, -6) // Empezamos hace 6 días para completar 7 con hoy
+    
+    var fechaMaximaCalculada = -1
+    
+    for (i in 0 until 7) {
+        val date = calendar.time
+        val dayLabel = SimpleDateFormat("d", Locale.getDefault()).format(date)
+        val dateString = SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(date)
+        
+        val usage = itemsFecha.find { it.date == dateString }
+        val minutes = if (usage != null && usage.name != "Nada") {
+            (usage.minUsadas + usage.horaUsadas * 60).toInt()
+        } else {
+            0
         }
-
+        
+        dummyData.add(dayLabel to minutes)
+        if (minutes > fechaMaximaCalculada) {
+            fechaMaximaCalculada = minutes
+        }
+        calendar.add(Calendar.DAY_OF_YEAR, 1)
     }
-    // meter eje X días concretos no del 1 al 7
-    fechaMaxima = (fechaMaxima * 1.2).toInt() // que el eje Y sea de maximo fechaMaxima, sino el eje Y 1440 como maximo si no se consigue meter variable eje Y
 
+    val fechaMaxima = (if (fechaMaximaCalculada > 0) fechaMaximaCalculada * 1.2 else 350.0).toInt()
 
     Column(
         modifier = modifier
@@ -143,7 +133,6 @@ fun ItemScreen(
         horizontalAlignment = Alignment.CenterHorizontally
 
     ) {
-        Text(dummyPruebas.toString())
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -166,7 +155,7 @@ fun ItemScreen(
                 )
 
                 Text(
-                    text = "Tiempo de uso: ${usoActual.horaUsadas}:${usoActual.minUsadas}:${usoActual.segUsadas}",
+                    text = "Tiempo de uso hoy: ${usoActual.horaUsadas}h ${usoActual.minUsadas}m ${usoActual.segUsadas}s",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -193,9 +182,9 @@ fun ItemScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             when (selectedChart) {
-                ChartType.POINTS -> UsageGraph(data = dummyData, modifier = Modifier.fillMaxSize())
-                ChartType.BARS -> UsageBarChart(data = dummyData, modifier = Modifier.fillMaxSize())
-                ChartType.AREA -> UsageAreaChart(data = dummyData, modifier = Modifier.fillMaxSize())
+                ChartType.POINTS -> UsageGraph(data = dummyData, maxMinutes = fechaMaxima, modifier = Modifier.fillMaxSize())
+                ChartType.BARS -> UsageBarChart(data = dummyData, maxMinutes = fechaMaxima, modifier = Modifier.fillMaxSize())
+                ChartType.AREA -> UsageAreaChart(data = dummyData, maxMinutes = fechaMaxima, modifier = Modifier.fillMaxSize())
             }
         }
 
@@ -227,84 +216,7 @@ fun ItemScreen(
 }
 
 @Composable
-fun UsageBarChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
-    val maxDays = 7
-    val maxMinutes = 350
-    val textMeasurer = rememberTextMeasurer()
-    val textStyle = TextStyle(fontSize = 10.sp, color = Color.Gray)
-
-    Canvas(modifier = modifier) {
-        val width = size.width
-        val height = size.height
-        val marginLeft = 100f
-        val marginBottom = 80f
-        val chartWidth = width - marginLeft - 20f
-        val chartHeight = height - marginBottom - 20f
-
-        // Ejes
-        drawLine(
-            color = Color.Black,
-            start = Offset(marginLeft, 20f),
-            end = Offset(marginLeft, height - marginBottom),
-            strokeWidth = 2f
-        )
-        drawLine(
-            color = Color.Black,
-            start = Offset(marginLeft, height - marginBottom),
-            end = Offset(width - 20f, height - marginBottom),
-            strokeWidth = 2f
-        )
-
-        // Etiquetas Eje Y
-        val ySteps = listOf(0, 100, 200, 300)
-        ySteps.forEach { min ->
-            val y = (height - marginBottom) - (min.toFloat() / maxMinutes) * chartHeight
-            drawText(
-                textMeasurer = textMeasurer,
-                text = min.toString(),
-                style = textStyle,
-                topLeft = Offset(marginLeft - 60f, y - 15f)
-            )
-            drawLine(
-                color = Color.LightGray,
-                start = Offset(marginLeft, y),
-                end = Offset(width - 20f, y),
-                strokeWidth = 1f
-            )
-        }
-
-        // Etiquetas Eje X
-        val xSteps = listOf(1, 3, 5, 7)
-        xSteps.forEach { day ->
-            val x = marginLeft + (day.toFloat() / maxDays) * chartWidth
-            drawText(
-                textMeasurer = textMeasurer,
-                text = day.toString(),
-                style = textStyle,
-                topLeft = Offset(x - 10f, height - marginBottom + 15f)
-            )
-        }
-
-        // Dibujar Barras
-        val barWidth = (chartWidth / maxDays) * 0.7f
-        data.forEach { (day, minutes) ->
-            val x = marginLeft + (day.toFloat() / maxDays) * chartWidth - (barWidth / 2)
-            val barHeight = (minutes.toFloat() / maxMinutes) * chartHeight
-            val y = (height - marginBottom) - barHeight
-            
-            drawRect(
-                color = Color(0xFF6200EE),
-                topLeft = Offset(x, y),
-                size = Size(barWidth, barHeight)
-            )
-        }
-    }
-}
-
-@Composable
-fun UsageAreaChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
-    val maxDays = 7f
-    val maxMinutes = 350f
+fun UsageBarChart(data: List<Pair<String, Int>>, maxMinutes: Int, modifier: Modifier = Modifier) {
     val textMeasurer = rememberTextMeasurer()
     val textStyle = TextStyle(fontSize = 10.sp, color = Color.Gray)
 
@@ -321,8 +233,50 @@ fun UsageAreaChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
         drawLine(Color.Black, Offset(marginLeft, height - marginBottom), Offset(width - 20f, height - marginBottom), 2f)
 
         // Etiquetas Eje Y
-        listOf(0, 100, 200, 300).forEach { min ->
-            val y = (height - marginBottom) - (min / maxMinutes) * chartHeight
+        val step = maxMinutes / 3
+        listOf(0, step, step * 2, maxMinutes).forEach { min ->
+            val y = (height - marginBottom) - (min.toFloat() / maxMinutes) * chartHeight
+            drawText(textMeasurer, min.toString(), Offset(marginLeft - 60f, y - 15f), textStyle)
+            drawLine(Color.LightGray, Offset(marginLeft, y), Offset(width - 20f, y), 1f)
+        }
+
+        // Barras y Etiquetas Eje X
+        val barWidth = (chartWidth / data.size) * 0.6f
+        data.forEachIndexed { index, (dayLabel, minutes) ->
+            val x = marginLeft + (index.toFloat() / (data.size - 1).coerceAtLeast(1)) * chartWidth
+            val barHeight = (minutes.toFloat() / maxMinutes) * chartHeight
+            val y = (height - marginBottom) - barHeight
+            
+            drawRect(
+                color = Color(0xFF6200EE),
+                topLeft = Offset(x - (barWidth / 2), y),
+                size = Size(barWidth, barHeight)
+            )
+            
+            drawText(textMeasurer, dayLabel, Offset(x - 10f, height - marginBottom + 15f), textStyle)
+        }
+    }
+}
+
+@Composable
+fun UsageAreaChart(data: List<Pair<String, Int>>, maxMinutes: Int, modifier: Modifier = Modifier) {
+    val textMeasurer = rememberTextMeasurer()
+    val textStyle = TextStyle(fontSize = 10.sp, color = Color.Gray)
+
+    Canvas(modifier = modifier) {
+        val width = size.width
+        val height = size.height
+        val marginLeft = 100f
+        val marginBottom = 80f
+        val chartWidth = width - marginLeft - 20f
+        val chartHeight = height - marginBottom - 20f
+
+        // Ejes y Etiquetas Y
+        drawLine(Color.Black, Offset(marginLeft, 20f), Offset(marginLeft, height - marginBottom), 2f)
+        drawLine(Color.Black, Offset(marginLeft, height - marginBottom), Offset(width - 20f, height - marginBottom), 2f)
+        val step = maxMinutes / 3
+        listOf(0, step, step * 2, maxMinutes).forEach { min ->
+            val y = (height - marginBottom) - (min.toFloat() / maxMinutes) * chartHeight
             drawText(textMeasurer, min.toString(), Offset(marginLeft - 60f, y - 15f), textStyle)
         }
 
@@ -330,9 +284,9 @@ fun UsageAreaChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
             val path = Path()
             val fillPath = Path()
 
-            data.forEachIndexed { index, (day, minutes) ->
-                val x = marginLeft + (day / maxDays) * chartWidth
-                val y = (height - marginBottom) - (minutes / maxMinutes) * chartHeight
+            data.forEachIndexed { index, (dayLabel, minutes) ->
+                val x = marginLeft + (index.toFloat() / (data.size - 1).coerceAtLeast(1)) * chartWidth
+                val y = (height - marginBottom) - (minutes.toFloat() / maxMinutes) * chartHeight
                 
                 if (index == 0) {
                     path.moveTo(x, y)
@@ -347,32 +301,18 @@ fun UsageAreaChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
                     fillPath.lineTo(x, height - marginBottom)
                     fillPath.close()
                 }
+                
+                drawText(textMeasurer, dayLabel, Offset(x - 10f, height - marginBottom + 15f), textStyle)
             }
 
-            // Relleno degradado
-            drawPath(
-                path = fillPath,
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF6200EE).copy(alpha = 0.5f), Color.Transparent),
-                    startY = 20f,
-                    endY = height - marginBottom
-                )
-            )
-
-            // Línea
-            drawPath(
-                path = path,
-                color = Color(0xFF6200EE),
-                style = Stroke(width = 4f, cap = StrokeCap.Round)
-            )
+            drawPath(fillPath, Brush.verticalGradient(listOf(Color(0xFF6200EE).copy(alpha = 0.5f), Color.Transparent), 20f, height - marginBottom))
+            drawPath(path, Color(0xFF6200EE), style = Stroke(width = 4f, cap = StrokeCap.Round))
         }
     }
 }
 
 @Composable
-fun UsageGraph(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
-    val maxDays = 7
-    val maxMinutes = 350 
+fun UsageGraph(data: List<Pair<String, Int>>, maxMinutes: Int, modifier: Modifier = Modifier) {
     val textMeasurer = rememberTextMeasurer()
     val textStyle = TextStyle(fontSize = 10.sp, color = Color.Gray)
 
@@ -381,51 +321,24 @@ fun UsageGraph(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
         val height = size.height
         val marginLeft = 100f
         val marginBottom = 80f
+        val chartWidth = width - marginLeft - 20f
+        val chartHeight = height - marginBottom - 20f
 
-        drawLine(
-            color = Color.Black,
-            start = Offset(marginLeft, 20f),
-            end = Offset(marginLeft, height - marginBottom),
-            strokeWidth = 2f
-        )
-        drawLine(
-            color = Color.Black,
-            start = Offset(marginLeft, height - marginBottom),
-            end = Offset(width - 20f, height - marginBottom),
-            strokeWidth = 2f
-        )
+        drawLine(Color.Black, Offset(marginLeft, 20f), Offset(marginLeft, height - marginBottom), 2f)
+        drawLine(Color.Black, Offset(marginLeft, height - marginBottom), Offset(width - 20f, height - marginBottom), 2f)
 
-        val ySteps = listOf(0, 100, 200, 300)
-        ySteps.forEach { min ->
-            val y = (height - marginBottom) - (min.toFloat() / maxMinutes) * (height - marginBottom - 20f)
-            drawText(
-                textMeasurer = textMeasurer,
-                text = min.toString(),
-                style = textStyle,
-                topLeft = Offset(marginLeft - 60f, y - 15f)
-            )
+        val step = maxMinutes / 3
+        listOf(0, step, step * 2, maxMinutes).forEach { min ->
+            val y = (height - marginBottom) - (min.toFloat() / maxMinutes) * chartHeight
+            drawText(textMeasurer, min.toString(), Offset(marginLeft - 60f, y - 15f), textStyle)
         }
 
-        val xSteps = listOf(1, 3, 5, 7)
-        xSteps.forEach { day ->
-            val x = marginLeft + (day.toFloat() / maxDays) * (width - marginLeft - 20f)
-            drawText(
-                textMeasurer = textMeasurer,
-                text = day.toString(),
-                style = textStyle,
-                topLeft = Offset(x - 10f, height - marginBottom + 15f)
-            )
-        }
-
-        data.forEach { (day, minutes) ->
-            val x = marginLeft + (day.toFloat() / maxDays) * (width - marginLeft - 20f)
-            val y = (height - marginBottom) - (minutes.toFloat() / maxMinutes) * (height - marginBottom - 20f)
+        data.forEachIndexed { index, (dayLabel, minutes) ->
+            val x = marginLeft + (index.toFloat() / (data.size - 1).coerceAtLeast(1)) * chartWidth
+            val y = (height - marginBottom) - (minutes.toFloat() / maxMinutes) * chartHeight
             
-            drawCircle(
-                color = Color.Blue,
-                radius = 8f,
-                center = Offset(x, y)
-            )
+            drawCircle(Color.Blue, radius = 8f, center = Offset(x, y))
+            drawText(textMeasurer, dayLabel, Offset(x - 10f, height - marginBottom + 15f), textStyle)
         }
     }
 }
@@ -436,32 +349,25 @@ fun ItemScreenPreview() {
     ItemScreen(itemId = 1)
 }
 
-
 fun sacarIcono(dire: String , context: Context): BitmapPainter {
     val drawable = context.packageManager.getApplicationIcon(dire)
-
     val bitmap: Bitmap = if (drawable is BitmapDrawable) {
         drawable.bitmap
     } else {
-        val b = createBitmap(
-            drawable.intrinsicWidth.coerceAtLeast(1),
-            drawable.intrinsicHeight.coerceAtLeast(1)
-        )
+        val b = createBitmap(drawable.intrinsicWidth.coerceAtLeast(1), drawable.intrinsicHeight.coerceAtLeast(1))
         val canvas = android.graphics.Canvas(b)
         drawable.setBounds(0, 0, canvas.width, canvas.height)
         drawable.draw(canvas)
         b
     }
     return BitmapPainter(bitmap.asImageBitmap())
-
 }
 
 fun sacarNomreReal(dire: String , context: Context): String {
-    var res = "nada";
-    if(dire != "nada"){
-        res = context.packageManager.getApplicationLabel(
-            context.packageManager.getApplicationInfo(dire, 0)
-        ).toString();
+    if(dire == "nada") return "nada"
+    return try {
+        context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(dire, 0)).toString()
+    } catch (e: Exception) {
+        dire
     }
-    return res
 }
