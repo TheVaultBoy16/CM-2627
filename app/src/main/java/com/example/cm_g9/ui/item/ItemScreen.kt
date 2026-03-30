@@ -109,7 +109,7 @@ fun ItemScreen(
     var dummyPruebas = mutableListOf<Pair<String, String>>();
     val calendar = Calendar.getInstance()
     var fechaEnLista = HomeItemFechas( name = "Nada" , date = "0/0/0" ,  horaUsadas = 99 , minUsadas = 99 , segUsadas = 99 );
-    var fechaMaxima = -1
+    var fechaMaximaCalculada = -1
     var fechaAux = -1
     for(i in 0..7){
         calendar.add(Calendar.DAY_OF_YEAR, -i-1)
@@ -124,15 +124,15 @@ fun ItemScreen(
                 (7-i) ,
                 fechaAux)
             )
-            if(fechaAux > fechaMaxima){
-                fechaMaxima = fechaAux
+            if(fechaAux > fechaMaximaCalculada){
+                fechaMaximaCalculada = fechaAux
             }
 
         }
 
     }
     // meter eje X días concretos no del 1 al 7
-    fechaMaxima = (fechaMaxima * 1.2).toInt() // que el eje Y sea de maximo fechaMaxima, sino el eje Y 1440 como maximo si no se consigue meter variable eje Y
+    val fechaMaxima = (if (fechaMaximaCalculada > 0) fechaMaximaCalculada * 1.2 else 350.0).toInt() // que el eje Y sea de maximo fechaMaxima, sino el eje Y 1440 como maximo si no se consigue meter variable eje Y
 
 
     Column(
@@ -193,9 +193,9 @@ fun ItemScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             when (selectedChart) {
-                ChartType.POINTS -> UsageGraph(data = dummyData, modifier = Modifier.fillMaxSize())
-                ChartType.BARS -> UsageBarChart(data = dummyData, modifier = Modifier.fillMaxSize())
-                ChartType.AREA -> UsageAreaChart(data = dummyData, modifier = Modifier.fillMaxSize())
+                ChartType.POINTS -> UsageGraph(data = dummyData, maxMinutes = fechaMaxima, modifier = Modifier.fillMaxSize())
+                ChartType.BARS -> UsageBarChart(data = dummyData, maxMinutes = fechaMaxima, modifier = Modifier.fillMaxSize())
+                ChartType.AREA -> UsageAreaChart(data = dummyData, maxMinutes = fechaMaxima, modifier = Modifier.fillMaxSize())
             }
         }
 
@@ -227,9 +227,8 @@ fun ItemScreen(
 }
 
 @Composable
-fun UsageBarChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
+fun UsageBarChart(data: List<Pair<Int, Int>>, maxMinutes: Int, modifier: Modifier = Modifier) {
     val maxDays = 7
-    val maxMinutes = 350
     val textMeasurer = rememberTextMeasurer()
     val textStyle = TextStyle(fontSize = 10.sp, color = Color.Gray)
 
@@ -256,7 +255,8 @@ fun UsageBarChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
         )
 
         // Etiquetas Eje Y
-        val ySteps = listOf(0, 100, 200, 300)
+        val step = maxMinutes / 3
+        val ySteps = listOf(0, step, step * 2, maxMinutes)
         ySteps.forEach { min ->
             val y = (height - marginBottom) - (min.toFloat() / maxMinutes) * chartHeight
             drawText(
@@ -302,9 +302,8 @@ fun UsageBarChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun UsageAreaChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
+fun UsageAreaChart(data: List<Pair<Int, Int>>, maxMinutes: Int, modifier: Modifier = Modifier) {
     val maxDays = 7f
-    val maxMinutes = 350f
     val textMeasurer = rememberTextMeasurer()
     val textStyle = TextStyle(fontSize = 10.sp, color = Color.Gray)
 
@@ -321,8 +320,10 @@ fun UsageAreaChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
         drawLine(Color.Black, Offset(marginLeft, height - marginBottom), Offset(width - 20f, height - marginBottom), 2f)
 
         // Etiquetas Eje Y
-        listOf(0, 100, 200, 300).forEach { min ->
-            val y = (height - marginBottom) - (min / maxMinutes) * chartHeight
+        val step = maxMinutes / 3
+        val ySteps = listOf(0, step, step * 2, maxMinutes)
+        ySteps.forEach { min ->
+            val y = (height - marginBottom) - (min.toFloat() / maxMinutes) * chartHeight
             drawText(textMeasurer, min.toString(), Offset(marginLeft - 60f, y - 15f), textStyle)
         }
 
@@ -332,7 +333,7 @@ fun UsageAreaChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
 
             data.forEachIndexed { index, (day, minutes) ->
                 val x = marginLeft + (day / maxDays) * chartWidth
-                val y = (height - marginBottom) - (minutes / maxMinutes) * chartHeight
+                val y = (height - marginBottom) - (minutes / maxMinutes.toFloat()) * chartHeight
                 
                 if (index == 0) {
                     path.moveTo(x, y)
@@ -370,9 +371,8 @@ fun UsageAreaChart(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun UsageGraph(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
+fun UsageGraph(data: List<Pair<Int, Int>>, maxMinutes: Int, modifier: Modifier = Modifier) {
     val maxDays = 7
-    val maxMinutes = 350 
     val textMeasurer = rememberTextMeasurer()
     val textStyle = TextStyle(fontSize = 10.sp, color = Color.Gray)
 
@@ -395,7 +395,8 @@ fun UsageGraph(data: List<Pair<Int, Int>>, modifier: Modifier = Modifier) {
             strokeWidth = 2f
         )
 
-        val ySteps = listOf(0, 100, 200, 300)
+        val step = maxMinutes / 3
+        val ySteps = listOf(0, step, step * 2, maxMinutes)
         ySteps.forEach { min ->
             val y = (height - marginBottom) - (min.toFloat() / maxMinutes) * (height - marginBottom - 20f)
             drawText(
