@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -107,6 +109,8 @@ fun ItemScreen(
     var dummyPruebas = mutableListOf<Pair<String, String>>();
     val calendar = Calendar.getInstance()
     var fechaEnLista = HomeItemFechas( name = "Nada" , date = "0/0/0" ,  horaUsadas = 99 , minUsadas = 99 , segUsadas = 99 );
+    var fechaMaxima = -1
+    var fechaAux = -1
     for(i in 0..7){
         calendar.add(Calendar.DAY_OF_YEAR, -i-1)
         val fechaActual = calendar.time
@@ -115,19 +119,26 @@ fun ItemScreen(
         fechaEnLista = itemsFecha.find { it.date == fechaFormateada }?: HomeItemFechas( name = "Nada" , date = "0/0/0" ,  horaUsadas = 99 , minUsadas = 99 , segUsadas = 99 );
         dummyPruebas.add(Pair(fechaFormateada , fechaEnLista.name) )
         if(fechaEnLista.name != "Nada" ){
+            fechaAux = (fechaEnLista.minUsadas + fechaEnLista.horaUsadas*60 ).toInt()
             dummyData.add( Pair(
                 (7-i) ,
-                (fechaEnLista.minUsadas + fechaEnLista.horaUsadas*60 ).toInt()
-                )
+                fechaAux)
             )
+            if(fechaAux > fechaMaxima){
+                fechaMaxima = fechaAux
+            }
+
         }
 
     }
+    // meter eje X días concretos no del 1 al 7
+    fechaMaxima = (fechaMaxima * 1.2).toInt() // que el eje Y sea de maximo fechaMaxima, sino el eje Y 1440 como maximo si no se consigue meter variable eje Y
 
 
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
 
