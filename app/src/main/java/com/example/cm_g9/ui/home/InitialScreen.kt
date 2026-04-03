@@ -1,7 +1,7 @@
 package com.example.cm_g9.ui.home
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,16 +10,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.cm_g9.R
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
@@ -30,13 +33,23 @@ fun InitialScreen(
 
 ) {
     //Eso da grandes problemas en el contexto de que recaba informacion antes de pedir los permisos
-    var recabarInformacion = RecabarInformacion( )//Comentar esto para ver el preload
-    recabarInformacion.optenerInfoApp(LocalContext.current );
+    var context = LocalContext.current;
+    var recabarInformacion = remember {  RecabarInformacion( ) }//Comentar esto para ver el preload
+    LaunchedEffect(Unit) {
+        recabarInformacion.optenerInfoApp(context)
+    }
+    val finalizado by recabarInformacion.finalizado.collectAsState()
     Box(
         modifier = modifier
             .fillMaxSize()
+            .background(
+                if(finalizado) Color.Black else Color.Blue
+            )
             .padding(24.dp)
-            .clickable { onStartClick() },
+            .clickable(
+                enabled = finalizado,
+                onClick = { onStartClick() }
+            ),
         contentAlignment = Alignment.TopCenter,
         //modifier = Modifier.clickable { onStartClick() }
     ) {

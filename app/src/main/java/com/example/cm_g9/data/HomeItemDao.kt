@@ -9,7 +9,7 @@ import androidx.room.Update
 @Dao
 interface HomeItemDao {
     //Devolver todos los datos
-    @Query("SELECT * FROM home_items ORDER BY name ASC")
+    @Query("SELECT * FROM home_items")
     suspend fun getAllItems(): List<HomeItemDB>
     @Query("SELECT * FROM home_items WHERE id = :id LIMIT 1")
     suspend fun getPorId(id: Int): List<HomeItemDB>

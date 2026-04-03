@@ -5,31 +5,30 @@ import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.os.Process
 import android.provider.Settings
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.core.graphics.createBitmap
+import android.util.Log
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cm_g9.R
 import com.example.cm_g9.data.AppDatabase
 import com.example.cm_g9.data.HomeItem
 import com.example.cm_g9.data.HomeItemDB
-import com.example.cm_g9.data.HomeItemDao
 import com.example.cm_g9.data.HomeItemFechas
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.lang.Thread.sleep
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
 class RecabarInformacion() : ViewModel(){
+
+    private val _finalizado = MutableStateFlow(false)
+    val finalizado: StateFlow<Boolean> = _finalizado
 
     val listaHome: MutableList<HomeItem> = mutableListOf()
     val listaHomeDB : MutableList<HomeItemDB> = mutableListOf()
@@ -52,6 +51,8 @@ class RecabarInformacion() : ViewModel(){
     }
     fun optenerInfoApp(context: Context) {
         if (!tienePermiso(context)) return
+
+        //_finalizado.value = false;
 
 
         /*
@@ -93,7 +94,6 @@ class RecabarInformacion() : ViewModel(){
 
 
 
-        var id = 1
         val iconRes: Int = R.drawable.ic_launcher_foreground
         val pm = context.packageManager;
 
@@ -103,13 +103,13 @@ class RecabarInformacion() : ViewModel(){
 
         val dao = AppDatabase.getDatabase(context).homeItemDao()
         val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR , +2)
         for(i in 0..7){
             inicio = franjas.get(i+1);
             tiempoActual = franjas.get(i);
 
             //Con esto tendria las fechas
-
-            calendar.add(Calendar.DAY_OF_YEAR, -i-1)
+            calendar.add(Calendar.DAY_OF_YEAR, -1)
             val fechaActual = calendar.time
             val formato = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             val fechaFormateada = formato.format(fechaActual)
@@ -119,44 +119,45 @@ class RecabarInformacion() : ViewModel(){
             if (stats.isNotEmpty()) {
                 for (usp in stats.values) {
                     val dire = usp.packageName // Guardar en DB
-                    if (dire.length > 4) {
+                    if (dire.length > 4 ) {
+                        //&& dire.contains("whatsapp")
                         val tiempoMs = usp.totalTimeInForeground
                         var segundos = tiempoMs / 1000
                         var minutos = segundos / 60
                         val horas = minutos / 60
                         segundos %= 60
                         minutos %= 60
-
-                        //Esto ya no deveria de hacer falta
-                        /*listaHome.add(
-                            HomeItem(id, nombreReal, iconRes, "TDB", horas, minutos, segundos,icon)
-                        )*/
-                        //Aqui hay que añadir en la base de datos. Fecha hoy Aunque creo que no hace falta si obtenemos el date time
                         if(i == 1){
-                            listaHomeDB.add(
-                                HomeItemDB( name = dire, habilitado = true)
-                            )
-                        }
+                            if( dire.contains("whatsapp") ||
+                                dire.contains("youtube") ||
+                                dire.contains("telegram") ||
+                                dire.contains("netflix") ||
+                                dire.contains("discord")){
+                                listaHomeDB.add(
+                                    HomeItemDB( name = dire, habilitado = true)
+                                )
+                            }else{
+                                listaHomeDB.add(
+                                    HomeItemDB( name = dire, habilitado = false)
+                                )
+                            }
 
+
+                        }
                         listaHomeItemFechas.add(
                             HomeItemFechas( name = dire , date = fechaFormateada ,  horaUsadas = horas , minUsadas = minutos , segUsadas = segundos)
                         )
 
-        }
+                    }
 
-
-                    /*listaHomeItemFechas.add(
-                        HomeItemFechas( name = dire , date = "19/03/2026" , horaUsadas = horas , minUsadas = minutos , segUsadas = segundos )
-                    )
-                    listaHomeItemFechas.add(
-                        HomeItemFechas( name = dire , date = "19/04/2026" , horaUsadas = horas , minUsadas = minutos , segUsadas = segundos )
-                    )*/
-                    id++
-                    //id = id,
                 }
+
             }
         }
-        viewModelScope.launch { dao.insertAll(listaHomeDB) }
-        viewModelScope.launch { dao.insertAllFechas(listaHomeItemFechas) }
-    }
+        viewModelScope.launch {
+            dao.insertAll(listaHomeDB)
+            dao.insertAllFechas(listaHomeItemFechas)
+            _finalizado.value = true
+            }
+        }
 }
