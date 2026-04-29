@@ -3,6 +3,7 @@ package com.example.cm_g9.ui.item
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +39,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -88,6 +90,7 @@ fun ItemScreen(
     var itemsFecha by remember { mutableStateOf<List<HomeItemFechas>>(emptyList()) }
     var appAMirar = HomeItemDB( name = "nada", habilitado = true)
     var usoActual = HomeItemFechas( name = "Nada" , date = "0/0/0" ,  horaUsadas = 99 , minUsadas = 99 , segUsadas = 99 )
+
     LaunchedEffect(Unit) {
         items = dao.getPorId(itemId);
         appAMirar = items.firstOrNull() ?: HomeItemDB(name = "nada", habilitado = true)
@@ -95,6 +98,17 @@ fun ItemScreen(
     }
     appAMirar = items.firstOrNull() ?: HomeItemDB(name = "nada", habilitado = true)
     usoActual = itemsFecha.find { it.date == fechaFormateada }?: HomeItemFechas( name = "Nada" , date = "0/0/0" ,  horaUsadas = 99 , minUsadas = 99 , segUsadas = 99 )
+    //A partir de aqui appAMirar.name da la direccion
+    Log.d("TAG", LocalContext.current.toString())
+    Log.d("TAG", appAMirar.name)
+    var icono: Painter? = null;
+    if(appAMirar.name == "nada") {
+        icono = painterResource(id = item.imageRes)
+    }else{
+        icono = sacarIcono(appAMirar.name, LocalContext.current);
+    }
+
+    //val icono = sacarIcono(appAMirar.name, LocalContext.current)
 
 
     // Datos reales para los últimos 7 días
@@ -138,7 +152,7 @@ fun ItemScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter =  painterResource(id = item.imageRes),
+                painter =  icono,//icono,
                 contentDescription = "App Image",
                 modifier = Modifier.size(100.dp)
             )
@@ -350,7 +364,8 @@ fun ItemScreenPreview() {
 }
 
 fun sacarIcono(dire: String , context: Context): BitmapPainter {
-    val drawable = context.packageManager.getApplicationIcon(dire)
+    Log.d("TAG",dire)
+    val drawable = context.applicationContext.packageManager.getApplicationIcon(dire)
     val bitmap: Bitmap = if (drawable is BitmapDrawable) {
         drawable.bitmap
     } else {

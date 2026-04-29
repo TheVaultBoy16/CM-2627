@@ -33,7 +33,8 @@ class Converters {
     fun fromDrawable(drawable: Drawable): ByteArray {
         val bitmap = if (drawable is BitmapDrawable) {
             drawable.bitmap
-        } else {
+        }
+        else {
             val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 1
             val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 1
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
